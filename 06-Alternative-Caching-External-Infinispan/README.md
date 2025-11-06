@@ -25,6 +25,6 @@ In this advanced, optional chapter, we will **replace** our native multi-site se
 
 ### **Lab Task Overview**
 
-1. **Deploy External Infinispan:** We will deploy two new Infinispan server containers on our sso-mon VM (one for Site A, one for Site B) using docker-compose.  
-2. **Configure Infinispan:** We will provide the infinispan-xsite.xml file to configure them for cross-site replication with each other.  
-3. **Re-configure RHBK:** We will update our keycloak.conf on all four RHBK nodes to disable the native multi-site feature and point to these new external servers instead.
+1. **[Deploy External Infinispan:](/06-Alternative-Caching-External-Infinispan/ispn-ext-deployment.md)** We will deploy two new Infinispan server containers on our sso-mon VM (one for Site A, one for Site B) using docker-compose.  
+2. **[Configure Infinispan:](/06-Alternative-Caching-External-Infinispan/ispn-ext-deployment.md#step-3-create-the-infinispan-xsitexml-file)** We will provide the infinispan-xsite.xml file to configure them for cross-site replication with each other.  
+3. **[Re-configure RHBK:](/06-Alternative-Caching-External-Infinispan/rhbk-configuration.md)** We will update our keycloak.conf on all four RHBK nodes to disable the native multi-site feature and point to these new external servers instead.

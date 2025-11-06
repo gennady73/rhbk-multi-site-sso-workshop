@@ -34,7 +34,7 @@ Let's begin with the first step: setting up the systemd service.
 
 ## **Sections in this Chapter**
 
-* [**01 \- Service Management (systemd)**](http://docs.google.com/01-service-management.md)  
-* [**02 \- Build and Maintenance (rebuild\_keycloak.sh)**](http://docs.google.com/02-build-and-maintenance.md)  
-* [**03 \- Certificate Setup**](http://docs.google.com/03-certificate-setup.md)  
-* [**04 \- Core Configuration (keycloak.conf)**](http://docs.google.com/04-core-configuration.md)
+* [**01 \- Service Management (systemd)**](/02-RHBK-Server-Setup/01-service-management.md)  
+* [**02 \- Build and Maintenance (rebuild\_keycloak.sh)**](/02-RHBK-Server-Setup/02-build-and-maintenance.md)  
+* [**03 \- Certificate Setup**](/02-RHBK-Server-Setup/03-certificate-setup.md)  
+* [**04 \- Core Configuration (keycloak.conf)**](/02-RHBK-Server-Setup/04-core-configuration.md)
