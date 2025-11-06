@@ -1,0 +1,68 @@
+# ==============================================================================
+# RHBK Multi-Site Workshop: Global HAProxy (GSLB) Configuration
+# File: /etc/haproxy/haproxy.cfg (on sso-gslb)
+# ==============================================================================
+
+global
+    log         127.0.0.1 local2
+    # This chroot jail must be created for the containerized version
+    # mkdir -p /var/lib/haproxy && chown haproxy:haproxy /var/lib/haproxy
+    # chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    user        haproxy
+    group       haproxy
+    daemon
+    stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  forwardfor
+    timeout connect         5000
+    timeout client          50000
+    timeout server          50000
+
+#---------------------------------------------------------------------
+# DNS Resolver Section
+# This tells HAProxy to use our local BIND server for DNS lookups.
+#---------------------------------------------------------------------
+resolvers mydns
+    # Point to the BIND server running on the same machine
+    nameserver dns1 127.0.0.1:53
+    # Use the low TTL from our zone file, not a cached value
+    hold valid 10s
+
+#---------------------------------------------------------------------
+# Frontend: The single public entry point for all users
+#---------------------------------------------------------------------
+frontend global_sso_frontend
+    # Bind to the public port and use our public-facing certificate
+    bind *:443 ssl crt /etc/haproxy/ssl/global.pem
+
+    # We use the 'Forwarded' header, which Keycloak is configured for
+    http-request set-var(req.proto) str(https) if { ssl_fc }
+    http-request set-var(req.proto) str(http) if !{ ssl_fc }
+    http-request set-header Forwarded "for=%[src];proto=%[var(req.proto)];host=%[req.hdr(Host)]"
+
+    default_backend keycloak_sites
+
+#---------------------------------------------------------------------
+# Backend: Dynamically resolves the active site
+#---------------------------------------------------------------------
+backend keycloak_sites
+    balance     roundrobin
+
+    # --- Session Stickiness ---
+    # This is still important at the global level to ensure a user's
+    # entire login flow lands on the *same site*.
+    cookie      KC_SESSION prefix nocache
+
+    # --- Dynamic Backend Server ---
+    # This is the core of the GSLB simulation.
+    # 1. We define ONE server using its *hostname*.
+    # 2. 'resolvers mydns' tells HAProxy to use our BIND server to find the IP.
+    # 3. 'init-addr none' forces HAProxy to resolve the name at runtime.
+    # 4. 'ssl verify required' secures the connection to the site-local LB
+    #    by checking its certificate against our internal CA.
+    server sso-cluster sso.mydomain.com:443 ssl verify required ca-file /etc/haproxy/ssl/internal-ca.pem resolvers mydns init-addr none

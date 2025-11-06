@@ -1,0 +1,25 @@
+;
+; /var/named/mydomain.com.zone
+;
+; This file contains all the DNS records for our lab domain.
+;
+$TTL 60
+@	IN SOA	ns1.mydomain.com. admin.mydomain.com. (
+			2025061623	; Serial (YYYYMMDDNN format)
+			3600		; Refresh
+			1800		; Retry
+			604800		; Expire
+			60 )		; Minimum TTL
+;
+; --- Name Servers ---
+; This record states that 'ns1.mydomain.com' is the authority for this zone
+@	IN NS	ns1.mydomain.com.
+
+; --- A Records (IP Addresses) ---
+; This is the 'glue record' that points our nameserver's name to its IP
+ns1	IN A	<Public_IP_of_Site_Zero_VM>
+
+; === THIS IS THE DYNAMIC GSLB RECORD ===
+; This is the record our script will update.
+; We start by pointing it to our primary site (Site A).
+sso	IN A	<Public_IP_sso-lb-a>

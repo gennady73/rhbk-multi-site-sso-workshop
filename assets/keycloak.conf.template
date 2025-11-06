@@ -1,0 +1,45 @@
+# --- /opt/keycloak/conf/keycloak.conf ---
+ 
+# Database
+db=postgres
+db-username=<db_user>
+db-password=<db_pass>
+db-url=jdbc:postgresql://<db_host>:5432/keycloak
+ 
+# Proxy & Hostname (Dynamic Mode)
+# The server deduces its public hostname from the proxy headers.
+# 'hostname' is deliberately left undefined.
+hostname-strict=false
+hostname-backchannel-dynamic=false
+proxy-headers=forwarded
+http-relative-path=/auth
+http-management-relative-path=/
+https-port=443 # Assuming service runs on the standard port with CAP_NET_BIND_SERVICE
+ 
+# Intra-Site Caching
+cache=ispn
+cache-stack=jdbc-ping
+ 
+# Native Multi-Site Configuration (Example for Site A)
+multi-site-enabled=true
+multi-site-site-name=site-a
+multi-site-port=7800
+multi-site-routes-provider=static
+multi-site-static-routes=site-b:10.20.1.11[7800],10.20.1.12[7800] # IPs of Site B nodes
+ 
+# Observability (Metrics & Logging)
+metrics-enabled=true
+health-enabled=true
+events-listeners=['metrics-listener']
+event-metrics-user-enabled=true
+event-metrics-user-events=login,logout,code_to_token,refresh_token,register
+event-metrics-user-tags=realm,clientId,idp
+http-metrics-histograms-enabled=true
+cache-metrics-histograms-enabled=true
+ 
+# Logging to File
+log=file
+log-file=/opt/keycloak/log/keycloak.log
+log-level=INFO
+log-file-rotation-size=20M
+log-file-rotation-max-files=5

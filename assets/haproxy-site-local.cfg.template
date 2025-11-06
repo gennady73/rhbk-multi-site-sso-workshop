@@ -1,0 +1,76 @@
+# ==============================================================================
+# RHBK Multi-Site Workshop: Site-Local HAProxy Configuration Template
+# File: /etc/haproxy/haproxy.cfg (on sso-lb-a and sso-lb-b)
+# ==============================================================================
+
+global
+    log         127.0.0.1 local2
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    user        haproxy
+    group       haproxy
+    daemon
+
+    # Default TLS settings
+    ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
+
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  forwardfor
+    timeout connect         5000
+    timeout client          50000
+    timeout server          50000
+
+#---------------------------------------------------------------------
+# Frontend: Listens for incoming Keycloak traffic
+#---------------------------------------------------------------------
+frontend keycloak_local_frontend
+    # Bind to the standard HTTPS port and use the certificate we created
+    bind *:443 ssl crt /etc/haproxy/ssl/haproxy.pem
+
+    # Use modern 'Forwarded' header
+    # This is required for Keycloak's "dynamic hostname" mode to work
+    http-request set-var(req.proto) str(https) if { ssl_fc }
+    http-request set-var(req.proto) str(http) if !{ ssl_fc }
+    http-request set-header Forwarded "for=%[src];proto=%[var(req.proto)];host=%[req.hdr(Host)]"
+    
+    default_backend keycloak_local_backend
+
+#---------------------------------------------------------------------
+# Backend: The pool of Keycloak servers for this site
+#---------------------------------------------------------------------
+backend keycloak_local_backend
+    balance     roundrobin
+
+    # --- Session Stickiness ---
+    # Use Keycloak's own cookie for session stickiness. This is critical.
+    cookie      KC_SESSION prefix nocache
+
+    # --- Health Checks ---
+    # Health checks target the Keycloak management port (9000)
+    # We use the HAProxy 2.4-compatible syntax to send the Host header,
+    # which is required by Keycloak's readiness probe.
+    # Note: 'sso.mydomain.com' is a placeholder. Any valid FQDN would work here.
+    option httpchk GET /health/ready HTTP/1.1\r\nHost: sso.mydomain.com\r\n\r\n
+
+    # --- Backend Servers ---
+    # Note on 'ssl verify none': 
+    # This is used in our lab because the backend Keycloak nodes use certificates
+    # signed by our own, non-public Internal CA, which this proxy doesn't trust by default.
+    # 'verify none' skips the check and allows the connection.
+    #
+    # In a production environment where the proxy's trust store is properly configured
+    # with the Internal CA, you would use:
+    # 'ssl verify required ca-file /etc/haproxy/ssl/internal-ca.pem'
+
+    # --- EDIT THE IPs BELOW FOR YOUR SITE ---
+    # For Site A (sso-lb-a):
+    server sso1 <sso-1-a-IP>:443 ssl verify none cookie sso1 check port 9000 check-ssl verify none
+    server sso2 <sso-2-a-IP>:443 ssl verify none cookie sso2 check port 9000 check-ssl verify none
+
+    # For Site B (sso-lb-b):
+    # server sso1 <sso-1-b-IP>:443 ssl verify none cookie sso1 check port 9000 check-ssl verify none
+    # server sso2 <sso-2-b-IP>:443 ssl verify none cookie sso2 check port 9000 check-ssl verify none

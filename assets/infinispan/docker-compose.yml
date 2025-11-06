@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  infinispan-a:
+    image: infinispan/server:15.0
+    container_name: infinispan-site-a
+    hostname: infinispan-a
+    environment:
+      - USER=admin
+      - PASS=password
+      - SITE_NAME=site-a
+      - BACKUP_SITE_NAME=site-b
+      # Points to the other container by its service name
+      - JGROUPS_TCPPING_INITIAL_HOSTS=infinispan-b[7800]
+    ports:
+      - "11222:11222" # Site A's port
+    volumes:
+      - ./infinispan-xsite.xml:/opt/infinispan/server/conf/infinispan-xsite.xml
+    command: >
+      -c /opt/infinispan/server/conf/infinispan-xsite.xml
+      -s /opt/infinispan/server
+      -Dinfinispan.site.name=site-a
+      -Dinfinispan.backup.site.name=site-b
+      -Dinfinispan.cluster.name=rhbk-ispn-cluster
+      -Dinfinispan.cluster.stack=tcp-xsite
+      -Dinfinispan.node.name=ispn-1-a
+      -Djgroups.tcpping.initial_hosts=infinispan-b[7800]
+
+  infinispan-b:
+    image: infinispan/server:15.0
+    container_name: infinispan-site-b
+    hostname: infinispan-b
+    environment:
+      - USER=admin
+      - PASS=password
+      - SITE_NAME=site-b
+      - BACKUP_SITE_NAME=site-a
+      - JGROUPS_TCPPING_INITIAL_HOSTS=infinispan-a[7800]
+    ports:
+      - "11223:11222" # Site B's port (mapped to 11223 to avoid conflict)
+    volumes:
+      - ./infinispan-xsite.xml:/opt/infinispan/server/conf/infinispan-xsite.xml
+    command: >
+      -c /opt/infinispan/server/conf/infinispan-xsite.xml
+      -s /opt/infinispan/server
+      -Dinfinispan.site.name=site-b
+      -Dinfinispan.backup.site.name=site-a
+      -Dinfinispan.cluster.name=rhbk-ispn-cluster
+      -Dinfinispan.cluster.stack=tcp-xsite
+      -Dinfinispan.node.name=ispn-1-b
+      -Djgroups.tcpping.initial_hosts=infinispan-a[7800]

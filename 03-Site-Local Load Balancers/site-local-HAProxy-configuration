@@ -1,0 +1,105 @@
+# **3.1 Lab: Configuring the Site-Local HAProxy**
+
+In this section, we will configure the HAProxy server for **Site A**. The steps for *Site B* are identical, simply replacing the names and IPs.
+
+### **Step 1: Install HAProxy**
+
+Log in to your `sso-lb-a` VM and install the HAProxy package.
+```sh
+sudo dnf install haproxy -y
+```
+
+### **Step 2: Configure the Firewall**
+
+We must allow public HTTPS traffic to reach our new load balancer.
+```sh
+# Allow traffic on the standard HTTPS port  
+sudo firewall-cmd --permanent --add-service=https  
+sudo firewall-cmd --reload
+```
+
+### **Step 3: Configure SELinux**
+
+By default, SELinux prevents HAProxy (a network service) from connecting to other network ports, especially non-standard ones. Our health check needs to talk to port 9000 on the backend.
+
+Run the following command to set the SELinux boolean that allows HAProxy to make these network connections:
+```sh
+# Allow HAProxy to connect to any network port  
+sudo setsebool -P haproxy_connect_any 1
+```
+
+### **Step 4: Deploy the TLS Certificate**
+
+As established in our prerequisites, this load balancer will terminate TLS for `sso-lb-a.mydomain.com`. We must deploy the certificate and key that we generated from our Internal CA.
+
+The `haproxy.cfg` file expects a single .pem file that contains the private key, the public certificate, and the CA certificate chain.
+
+1. Create the directory for the certificates:  
+```sh
+   sudo mkdir \-p /etc/haproxy/ssl
+```
+2. Copy your `sso-lb-a.mydomain.com.key`, `sso-lb-a.mydomain.com.crt`, and `lab-root-ca.crt` files to the server.  
+3. Concatenate them into the single .pem file HAProxy needs:  
+```sh
+   sudo cat /path/to/sso-lb-a.mydomain.com.key \  
+            /path/to/sso-lb-a.mydomain.com.crt \  
+            /path/to/lab-root-ca.crt \  
+            > /etc/haproxy/ssl/haproxy.pem
+```
+4. Set strict permissions for HAProxy:  
+   sudo chmod 600 /etc/haproxy/ssl/haproxy.pem
+
+### **Step 5: Create the HAProxy Configuration**
+
+This is the most important step. We will now create the configuration file that defines our proxy logic.
+
+Copy the [haproxy.cfg.site-local](/assets/haproxy-site-local.cfg.template) template from the assets directory into `/etc/haproxy/haproxy.cfg` and edit the file to set the correct IP addresses for your backend `sso-1-a` and `sso-2-a` nodes by issuing the following commands:
+```sh
+# Copy the template to the correct location  
+sudo cp ./assets/haproxy.cfg.site-local /etc/haproxy/haproxy.cfg
+
+# Open the file for editing  
+sudo vi /etc/haproxy/haproxy.cfg
+```
+Make sure the backend section at the bottom reflects your environment's IPs:
+```sh
+backend keycloak_local_backend  
+    balance     roundrobin  
+    cookie      KC_SESSION prefix nocache
+
+    # Health checks target the Keycloak management port (9000)  
+    option httpchk GET /health/ready HTTP/1.1\r\nHost:{color} sso.mydomain.com\r\n\r\n
+
+    # Define your backend RHBK servers for Site A  
+    server sso1 <IP_of_sso-1-a>:443 ssl verify none cookie sso1 check port 9000 check-ssl verify none  
+    server sso2 <IP_of_sso-2-a>:443 ssl verify none cookie sso2 check port 9000 check-ssl verify none
+```
+### **Step 6: Start and Verify**
+
+Now, let's enable and start the HAProxy service.
+```sh
+# Enable the service to start on boot  
+sudo systemctl enable haproxy
+
+# Start the service  
+sudo systemctl start haproxy
+    ```
+# Check its status to ensure it started without errors  
+sudo systemctl status haproxy
+```
+
+### **Step 7: Repeat for Site B**
+
+Repeat all steps (1-6) on your `sso-lb-b` VM.
+
+* When creating the .pem file, use the certificate for `sso-lb-b.mydomain.com`.  
+* When editing haproxy.cfg, use the IPs for `sso-1-b` and `sso-2-b` in the backend section.
+
+### **Verification**
+
+You should now be able to access your Keycloak servers through their site-local load balancers. Open your browser and (assuming your local machine's hosts file can resolve these names) navigate to:
+
+* `https://sso-lb-a.mydomain.com/auth`  
+* `https://sso-lb-b.mydomain.com/auth`
+
+Both should load the Keycloak welcome page. We are now ready to build the global "brain" that will sit in front of these two sites.

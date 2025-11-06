@@ -1,0 +1,21 @@
+groups:
+  - name: keycloak_alerts
+    rules:
+      - alert: KeycloakInstanceDown
+        expr: up{job="keycloak"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Keycloak instance {{ $labels.instance }} down"
+          description: "The Keycloak instance at {{ $labels.instance }} has been down for more than 1 minute."
+
+      - alert: HighLoginFailureRate
+        # Fires if there are more than 5 failed logins per minute across the whole cluster.
+        expr: sum(rate(keycloak_user_event_total{event="LOGIN_ERROR"}[5m])) * 60 > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of failed logins detected"
+          description: "There have been more than 5 failed logins per minute recently. Value: {{ $value }}"

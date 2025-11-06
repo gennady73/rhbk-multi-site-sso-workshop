@@ -1,0 +1,16 @@
+global:
+resolve_timeout: 5m
+
+route:
+group_by: ['alertname', 'job']
+group_wait: 30s
+group_interval: 5m
+repeat_interval: 2h
+receiver: 'slack-notifications'
+
+receivers:
+- name: 'slack-notifications'
+slack_configs:
+- api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK_URL' # <--- REPLACE THIS
+channel: '#keycloak-alerts'
+send_resolved: true
