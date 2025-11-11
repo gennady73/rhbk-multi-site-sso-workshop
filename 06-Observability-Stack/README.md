@@ -1,4 +1,4 @@
-# **Chapter 5: Observability \- Monitoring and Logging**
+# **Chapter 6: Observability \- Monitoring and Logging**
 
 ### **The Story So Far**
 
@@ -31,8 +31,8 @@ On our dedicated sso-mon VM in Site Zero, we will deploy a stack of industry-sta
 
 This chapter is divided into these main lab sections:
 
-1. **[Deploying the Core Stack (Docker Compose)](/05-Observability-Stack/deployment.md)**  
-2. **[Configuring Prometheus](/05-Observability-Stack/prometheus-config.md)**  
-3. **[Configuring Log Forwarding (Splunk)](/05-Observability-Stack/splunk-config.md)**  
-4. **[Importing Grafana Dashboards](/05-Observability-Stack/grafana-setup.md)**  
-5. **[Configuring Alertmanager](/05-Observability-Stack/alertmanager-config.md)**
+1. **[Deploying the Core Stack (Docker Compose)](/06-Observability-Stack/deployment.md)**  
+2. **[Configuring Prometheus](/06-Observability-Stack/prometheus-config.md)**  
+3. **[Configuring Log Forwarding (Splunk)](/06-Observability-Stack/splunk-config.md)**  
+4. **[Importing Grafana Dashboards](/06-Observability-Stack/grafana-setup.md)**  
+5. **[Configuring Alertmanager](/06-Observability-Stack/alertmanager-config.md)**

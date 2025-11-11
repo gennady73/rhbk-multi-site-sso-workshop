@@ -1,4 +1,4 @@
-# **3.1 Lab: Configuring the Site-Local HAProxy**
+# **4.1 Lab: Configuring the Site-Local HAProxy**
 
 In this section, we will configure the HAProxy server for **Site A**. The steps for *Site B* are identical, simply replacing the names and IPs.
 

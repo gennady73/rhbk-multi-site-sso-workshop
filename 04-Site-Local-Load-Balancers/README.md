@@ -1,4 +1,4 @@
-# **Chapter 3: Site-Local Load Balancers (HAProxy)**
+# **Chapter 4: Site-Local Load Balancers (HAProxy)**
 
 ### **The Story So Far**
 

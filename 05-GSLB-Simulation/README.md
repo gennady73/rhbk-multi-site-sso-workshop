@@ -1,4 +1,4 @@
-# **Chapter 4: Building the Global Load Balancer (GSLB) Simulation**
+# **Chapter 5: Building the Global Load Balancer (GSLB) Simulation**
 
 ### **The Story So Far**
 
@@ -23,6 +23,6 @@ This GSLB has two components that work together:
 
 This chapter is divided into three main lab sections:
 
-1. **[Configuring the BIND DNS Server](/04-GSLB-Simulation/bind-setup.md) (The "Brain")**  
-2. **[Deploying the Health Check Script](/04-GSLB-Simulation/health-check-script.md) (The "Heart")**  
-3. **[Configuring the Global HAProxy](/04-GSLB-Simulation/global-haproxy.md) (The "Front Door")**
+1. **[Configuring the BIND DNS Server](/05-GSLB-Simulation/bind-setup.md) (The "Brain")**  
+2. **[Deploying the Health Check Script](/05-GSLB-Simulation/health-check-script.md) (The "Heart")**  
+3. **[Configuring the Global HAProxy](/05-GSLB-Simulation/global-haproxy.md) (The "Front Door")**

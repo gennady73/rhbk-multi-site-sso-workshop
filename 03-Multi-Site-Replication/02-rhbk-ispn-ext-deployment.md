@@ -1,4 +1,4 @@
-# **6.2 Lab: Re-configuring RHBK to Use an External Cache**
+# **3.2 Lab: Re-configuring RHBK to Use an External Cache**
 
 Now that our external Infinispan cluster is running, we must reconfigure our RHBK nodes to use it. This involves "gutting" the native caching configuration from keycloak.conf and replacing it with settings that point to our new external service.
 

@@ -1,4 +1,4 @@
-# **6.1 Lab: Deploying an External Infinispan Cluster**
+# **3.3 Lab: Deploying an External Infinispan Cluster**
 
 Our first step is to deploy the new, external cache servers. For this workshop, we will run both Infinispan nodes as containers on our sso-mon VM. In a real-world scenario, these would be on their own dedicated VMs within their respective sites.
 
