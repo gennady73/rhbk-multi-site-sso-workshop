@@ -87,4 +87,4 @@ This workshop is divided into the following labs. It is recommended to proceed i
 
 - [Red Hat Build of Keycloak 26.2 - High Availability Guide.](https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/26.2/pdf/high_availability_guide/Red_Hat_build_of_Keycloak-26.2-High_Availability_Guide-en-US.pdf)
 
-- [Keycoak - Configuring distributed caches.](https://www.keycloak.org/server/caching)
+- [Keycloak - Configuring distributed caches.](https://www.keycloak.org/server/caching)
