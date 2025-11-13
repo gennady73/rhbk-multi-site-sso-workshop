@@ -49,6 +49,16 @@ The following matrix breaks down the pros, cons, and scaling differences you req
 | **Combined:** App and cache scale together. | **Decoupled:** App nodes and cache nodes can be scaled independently. |
 | **Configuration:** keycloak.conf | **Configuration:** keycloak.conf \+ infinispan-xsite.xml \+ Infinispan startup scripts. |
 
+### **Lab Topology Comparison**
+* **Path A: Native RHBK Multi-Site (Embedded Cache)**  
+![Path A: Native RHBK Multi-Site (Embedded Cache)](/assets/rhbk-internal-cache-topology.png)  
+*NOTE*: Infinispan cache runs inside the RHBK JVM.  
+
+
+* **Path B: External Infinispan Cross-Site (Decoupled Cache)**  
+![Path B: External Infinispan Cross-Site (Decoupled Cache)](/assets/rhbk-external-cache-topology.png)  
+*NOTE*: Infinispan cache and RHBK server are both runs as separate processes and on different machines.
+
 
 ### **Lab Task Overview**
 

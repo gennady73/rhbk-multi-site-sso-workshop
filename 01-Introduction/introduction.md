@@ -56,7 +56,7 @@ A primary goal of this workshop is to give you hands-on experience with the two 
   * **How it works:** The RHBK nodes are *not* clustered with each other. They simply connect to the external Infinispan cluster. The external Infinispan nodes *then* handle all clustering and cross-site replication (e.g., ispn-1-a in Site A replicates to ispn-1-b in Site B).
 
 * **Choosing Path**
-  You will implement **Path A** in Lab 03\. An optional "Challenge Lab" will guide you on how to re-configure the cluster for **Path B**, allowing you to directly compare the two. The following [Caching Architecture Comparison](/03-Multi-Site-Replication/caching-configuration-paths.md) breaks down the pros, cons, and scaling differences you requested.
+  You will implement **Path A** in Lab 03\. An optional "Challenge Lab" will guide you on how to re-configure the cluster for **Path B**, allowing you to directly compare the two. The following [Caching Architecture Comparison](/03-Multi-Site-Replication/README.md#caching-architecture-comparison) breaks down the pros, cons, and scaling differences you requested.
 
 ## **1.5 Workshop Prerequisites**
 
