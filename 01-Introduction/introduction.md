@@ -65,6 +65,9 @@ Ready to start building?
 ## **Prerequisites**
 
 Before starting, you will need to provision the virtual environment for our workshop.
+Depending on the path you will choose to implement **[Path A](/03-Multi-Site-Replication/01-rhbk-ispn-int-deployment.md)** in "[Lab 03](/03-Multi-Site-Replication/02-rhbk-ispn-ext-deployment.md)" or an optional "Challenge Lab" for **Path B**, the topology will differ.   
+For more detailed information, please refer to the *[RHBK Lab Topology - The Infrastructure inventory](/01-Introduction/lab-topology.md)* document provides the clear "shopping list" for students, depending on which lab path they choose.    
+The following is a list of common requirements for the workshop labs.
 
 ### **VM Requirements**
 
@@ -90,5 +93,6 @@ You will need a total of **8 VMs** running RHEL 9, distributed across three simu
 * podman and podman-compose (or Docker) available on the Monitoring VM.  
 * Basic Linux skills (using vi/nano, systemd, firewalld, running scripts).  
 * Conceptual understanding of DNS, Load Balancing, and HTTPS/TLS principles.
+
 
 
