@@ -19,13 +19,15 @@ You now have two Infinispan servers running.
 ### **Step 2: Update the keycloak.conf File**
 
 On **all four** RHBK nodes, you must now edit `/opt/keycloak/conf/keycloak.conf`.   
-We will make the following changes (as outlined in your 341 document):
+We will make the following changes:
 
 1. **Remove** the cache=ispn and cache-stack=jdbc-ping lines.  
-2. **Remove** all of the multi-site-\* configuration lines.  
-3. **Add** new lines to point to the external cache.
+    The new configration is `cache-stack=tcp`
+2. **Remove** all of the `multi-site-*` configuration lines.  
+3. **Add** new lines of `cache-remote-*` to point to the external cache.
 
-Your new configuration file should look like this. Note the changes in the "Caching" section.
+Your new configuration file should look like following. Note the changes in the "UPDATED CACHING CONFIGURATION" section.   
+*Remember:* apply following configuration for both sites(`Site A` and `Site B` in this case).
 
 **File: /opt/keycloak/conf/keycloak.conf**
 
@@ -87,9 +89,32 @@ Because we have fundamentally changed the caching stack (from ispn to tcp and re
 
 On **all four** RHBK nodes:
 
-1. Stop the service: sudo systemctl stop keycloak  
-2. Run your build script: sudo /opt/keycloak/bin/rebuild\_keycloak.sh  
-3. Start the service: sudo systemctl start keycloak
+1. Stop the service:    
+    ```bash
+    sudo systemctl stop keycloak
+    ```  
+2. Make sure the `multi-site` feature is listed in the value of `FEATURES` variable inside of `rebuild_keycloak.sh` script. 
+
+    ```bash
+    # Define the features to be enabled here for easy maintenance
+    FEATURES="hostname:v2,token-exchange,impersonation,multi-site"
+    ```
+
+2. Run your build script:   
+    ```bash
+    sudo /opt/keycloak/bin/rebuild_keycloak.sh
+    ```
+
+    *NOTE:* The main principle of enabling features is represented in the script is by the following line:   
+
+    ```bash
+    $KC_HOME/bin/kc.sh build --features=$FEATURES"
+    ```
+
+3. Start the service:   
+    ```bash
+    sudo systemctl start keycloak
+    ```
 
 ### **Verification**
 
@@ -99,7 +124,7 @@ You can verify this using the same method as before:
 
 1. Log into `https://sso-global-lb.mydomain.com/auth` (which should resolve to Site A).  
 2. Go to the Admin Console and find your session.  
-3. Shut down your sso-lb-a load balancer.  
+3. Shut down your `sso-lb-a` load balancer.  
 4. Your GSLB script will detect the failure and update DNS to point to Site B.  
 5. Refresh your browser. You should be seamlessly logged in to Site B, proving the session was replicated by the external cluster.
 

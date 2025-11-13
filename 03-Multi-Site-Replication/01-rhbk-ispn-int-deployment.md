@@ -20,7 +20,7 @@ You will create a single `keycloak.conf` file and deploy it to all four of your 
 On your local machine, create the file `/opt/keycloak/conf/keycloak.conf` using the template below. 
 File **[keycloak.conf](/assets/keycloak.conf.template)**
 
-**Important:** This configuration includes all the metrics and event listeners required to populate the Grafana dashboards we will build in [Chapter 6](/06-Observability-Stack/)\.
+**Important:** This configuration includes all the metrics and event listeners required to populate the Grafana dashboards we will build in [Chapter 6](/06-Observability-Stack/README.md)\.
 
 
 #### **2\. Deploy the Configuration File**
