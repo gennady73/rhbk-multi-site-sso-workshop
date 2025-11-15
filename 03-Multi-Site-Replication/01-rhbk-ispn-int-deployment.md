@@ -1,4 +1,4 @@
-# **3.1 Core Server Configuration (keycloak.conf)**
+# **3.1 Lab: Configuring RHBK to Use an Ebmedded(Internal) Cache**
 
 Now that we have a secure systemd service and valid TLS/SSL certificates, it's time to create the core configuration file that brings our server to life.   
 This file, `keycloak.conf`, controls everything from the database connection to the proxy settings and our multi-site replication.  
@@ -17,10 +17,25 @@ You will create a single `keycloak.conf` file and deploy it to all four of your 
 
 #### **1\. Create the keycloak.conf File**
 
-On your local machine, create the file `/opt/keycloak/conf/keycloak.conf` using the template below. 
+- On your local machine, create the file `/opt/keycloak/conf/keycloak.conf` using the template below. 
 File **[keycloak.conf](/assets/keycloak.conf.template)**
 
-**Important:** This configuration includes all the metrics and event listeners required to populate the Grafana dashboards we will build in [Chapter 6](/06-Observability-Stack/README.md)\.
+- On **all four** RHBK nodes, the `/opt/keycloak/conf/keycloak.conf` file must include the configurations as following:   
+
+    ```ini
+    # Intra-Site Caching
+    cache=ispn
+    cache-stack=jdbc-ping
+
+    # Native Multi-Site Configuration (Example for Site A)
+    multi-site-enabled=true
+    multi-site-site-name=site-a
+    multi-site-port=7800
+    multi-site-routes-provider=static
+    multi-site-static-routes=site-b:10.20.1.11[7800],10.20.1.12[7800] # IPs of Site B nodes
+    ```
+
+- **Important:** This configuration includes all the metrics and event listeners required to populate the Grafana dashboards we will build in [Chapter 6](/06-Observability-Stack/README.md)\.
 
 
 #### **2\. Deploy the Configuration File**
@@ -36,11 +51,12 @@ File **[keycloak.conf](/assets/keycloak.conf.template)**
 
     Copy keycloak.conf.site-b to /opt/keycloak/conf/keycloak.conf on sso-1-b and sso-2-b.
 
+
 - Set Permissions: On all four nodes, set the ownership so the keycloak user can read it.
 
-```sh
-sudo chown keycloak:keycloak /opt/keycloak/conf/keycloak.conf
-sudo chmod 640 /opt/keycloak/conf/keycloak.conf
-```
+    ```sh
+    sudo chown keycloak:keycloak /opt/keycloak/conf/keycloak.conf
+    sudo chmod 640 /opt/keycloak/conf/keycloak.conf
+    ```
 
 With the configuration in place, you are now ready to run the build script and start the servers for the first time.

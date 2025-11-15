@@ -58,6 +58,7 @@ This workshop is divided into the following labs. It is recommended to proceed i
    * Path B
       * [Path B: RHBK Multi-Site (Remote Cache)](/03-Multi-Site-Replication/02-rhbk-ispn-ext-deployment.md)    
       * [Path B: External Infinispan Cross-Site (Remote Cache)](/03-Multi-Site-Replication/03-ispn-ext-deployment.md)    
+   * [Firewall configurations](/03-Multi-Site-Replication/04-firewall.md)
 
 * 04 **[Site-LoadBalancers](/04-Site-Local-Load-Balancers/README.md)**
 
