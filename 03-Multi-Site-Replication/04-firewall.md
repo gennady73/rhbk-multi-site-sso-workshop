@@ -61,6 +61,7 @@ cache-remote-tls-enabled=false
 - `7800-7900/tcp` - JGroups / Infinispan internode (site-local)
 - `7900/tcp` - xsite backup/replication
 - `7200/udp` - optional diagnostics
+- `9000/tcp` - RHBK metrics / management
 
 **Example `firewalld` rules (external mode):**
 
@@ -69,6 +70,7 @@ sudo firewall-cmd --permanent --add-port=11222/tcp
 sudo firewall-cmd --permanent --add-port=7800-7900/tcp
 sudo firewall-cmd --permanent --add-port=7900/tcp
 sudo firewall-cmd --permanent --add-port=7200/udp
+sudo firewall-cmd --permanent --add-port=9000/tcp
 sudo firewall-cmd --reload
 ```
 
@@ -135,7 +137,6 @@ sudo firewall-cmd --permanent --add-port=8080/tcp
 sudo firewall-cmd --permanent --add-port=8443/tcp
 sudo firewall-cmd --permanent --add-port=9090/tcp
 sudo firewall-cmd --permanent --add-port=3000/tcp
-sudo firewall-cmd --permanent --add-port=9000/tcp
 sudo firewall-cmd --reload
 ```
 
