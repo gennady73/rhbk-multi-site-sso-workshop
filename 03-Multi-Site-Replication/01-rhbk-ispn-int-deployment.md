@@ -35,7 +35,12 @@ File **[keycloak.conf](/assets/keycloak.conf.template)**
     multi-site-static-routes=site-b:10.20.1.11[7800],10.20.1.12[7800] # IPs of Site B nodes
     ```
 
-- **Important:** This configuration includes all the metrics and event listeners required to populate the Grafana dashboards we will build in [Chapter 6](/06-Observability-Stack/README.md)\.
+- **Important:** 
+    - **Discovery Mechanism(cache-stack=jdbc-ping)**:   
+    Instead of relying on multicast or specific network configurations, JDBC-PING uses a dedicated table in the configured RHBK(Keycloak) database to register and discover other nodes in the cluster. Each node writes its address and other relevant information to this table, and then queries it to find other active nodes. 
+
+    - **Metrics**:  
+    This configuration includes all the metrics and event listeners required to populate the Grafana dashboards we will build in [Chapter 6](/06-Observability-Stack/README.md)\. 
 
 
 #### **2\. Deploy the Configuration File**

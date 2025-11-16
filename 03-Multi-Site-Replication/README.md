@@ -40,6 +40,7 @@ The following matrix breaks down the pros, cons, and scaling differences you req
 | **Cons** | \- **Coupled Scaling:** A temporary login surge may force you to scale up expensive cache nodes. \- **"Noisy Neighbor":** A busy cache (e.g., during replication) can impact RHBK performance (CPU/Memory). \- **Opaque:** Harder to tune the embedded cache. | \- **Complexity:** Requires managing, securing, and monitoring a separate cluster. \- **Higher Resource "Floor":** Requires more VMs/processes to start. \- **Network Hop:** Adds a network call from RHBK to Infinispan. |
 | **Network/Protocol** | 1\. **Intra-Site:** JGroups (e.g., jdbc-ping) for node discovery. 2\. **Inter-Site:** JGroups RELAY2 protocol for replication. | 1\. **RHBK \-\> Infinispan:** Hot Rod protocol (client-server). 2\. **Infinispan Intra-Site:** JGroups (e.g., tcp-ping). 3\. **Infinispan Inter-Site:** JGroups RELAY2 protocol. |
 
+<br>
 
 ### **Architecture Comparison**
 
@@ -49,16 +50,38 @@ The following matrix breaks down the pros, cons, and scaling differences you req
 | **Combined:** App and cache scale together. | **Decoupled:** App nodes and cache nodes can be scaled independently. |
 | **Configuration:** keycloak.conf | **Configuration:** keycloak.conf \+ infinispan-xsite.xml \+ Infinispan startup scripts. |
 
-### **Lab Topology Comparison**
+<br>
+
+### **Lab Topology Comparison** 
+
+<br>
+<hr>
+
 * **Path A: Native RHBK Multi-Site (Embedded Cache)**  
 ![Path A: Native RHBK Multi-Site (Embedded Cache)](/assets/rhbk-internal-cache-topology.png)  
-*NOTE*: Infinispan cache runs inside the RHBK JVM.  
+*NOTE*: 
+    - **Caching**:  
+    Infinispan cache runs inside the RHBK process(a JVM).  
 
+    - **Discovery Mechanism(cache-stack=jdbc-ping)**:   
+    Instead of relying on multicast or specific network configurations, JDBC-PING uses a dedicated table in the configured RHBK(Keycloak) database to register and discover other nodes in the cluster. Each node writes its address and other relevant information to this table, and then queries it to find other active nodes.  
+    This is the **default** discovery mechanism in recent Keycloak versions, especially when a `cache-stack` is not explicitly defined.
+
+<br>
+<hr>
 
 * **Path B: External Infinispan Cross-Site (Decoupled Cache)**  
 ![Path B: External Infinispan Cross-Site (Decoupled Cache)](/assets/rhbk-external-cache-topology.png)  
-*NOTE*: Infinispan cache and RHBK server are both runs as separate processes and on different machines.
+*NOTE*: 
+  - **Caching**:  
+  Infinispan cache and RHBK server are both runs as separate process and on remote machines. 
 
+  - **Discovery Mechanism(cache-stack=tcp)**:   
+  The TCP (JGroups TCP stack) stack in JGroups allows for explicit configuration of member addresses.   
+  Nodes are configured with a list of known or potential cluster members (e.g., IP addresses and ports).  
+  This method is suitable for environments where network addresses are static and well-known. 
+
+<br>
 
 ### **Lab Task Overview**
 
