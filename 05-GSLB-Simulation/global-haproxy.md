@@ -1,4 +1,4 @@
-# **4.3 Lab: Configuring the Global HAProxy (The "Front Door")**
+# **5.3 Lab: Configuring the Global HAProxy (The "Front Door")**
 
 We have now built our intelligent DNS. The final piece of the GSLB simulation is to build the "Front Door"—the single HAProxy instance that all our clients will connect to.
 

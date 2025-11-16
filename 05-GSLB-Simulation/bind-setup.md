@@ -1,4 +1,4 @@
-# **4.1 Lab: Configuring the BIND DNS Server**
+# **5.1 Lab: Configuring the BIND DNS Server**
 
 First, we will set up the "Brain" of our GSLB: the BIND DNS server.     
 This server's *only* job is to be the authoritative source for our mydomain.com zone and answer one question: "What is the IP address for sso.mydomain.com?"
@@ -59,7 +59,7 @@ Now we create the "file" that `named.conf` points to. This file contains the act
 3. Set the correct permissions so the `named` service can read and write to the file (our script will be editing this file as root, but named needs to read it).
    ```sh  
    sudo chown root:named /var/named/mydomain.com.zone  
-   sudo chmod 664 /var/named/mydomain.com.zone
+   sudo chmod 660 /var/named/mydomain.com.zone
    ```
 ### **Step 4: Validate, Start, and Enable BIND**
 
@@ -85,9 +85,40 @@ Now we create the "file" that `named.conf` points to. This file contains the act
 ### **Step 5: Perform a Local Test**
 
 The final check. Let's ask our newly running BIND server (at localhost) for the IP of `sso.mydomain.com`.
-```sh
+```bash
 dig A sso.mydomain.com @localhost
 ```
 You should see a successful response in the ANSWER SECTION showing the IP of your primary site, `sso-lb-a`.
 
 **Status:** The "Brain" is now built and serving our primary DNS record.
+
+### **Step 6: Simulate a Site Failure**
+
+Now, let's simulate Site A going down.
+
+Log in to your **lb-a (Site A Load Balancer)** VM and **stop** the HAProxy service:    
+```bash
+# Run this on lb-a.mydomain.com  
+sudo systemctl stop haproxy
+```
+
+1. **Verify the "Smart DNS" Failover**
+
+**Wait 30-60 seconds.** The gslb\_check.sh script is likely running from cron every minute. It needs time to detect the failure and run the nsupdate command to remove the "down" IP.
+
+Now, run the exact same dig command again:
+```bash
+dig sso.mydomain.com @\<gslb\_ip\>
+```
+**This is the key test.** If the script worked, you should now see an answer section containing only **Site B** IP address. The IP for Site A will be gone.    
+This confirms our "Smart DNS" is working. It has automatically removed the unhealthy site from the DNS pool.
+
+2. **Verify Recovery (Cleanup)**
+
+Go back to the **lb-a** VM and restart the HAProxy service:
+```bash
+# Run this on lb-a.mydomain.com  
+sudo systemctl start haproxy
+```   
+
+Wait another minute for the script to run. If you run the dig command again, you will see **Site A** IP have returned, confirming the automatic recovery.
