@@ -7,15 +7,15 @@ DOMAIN_NAME=".<mydomain.com>"
 
 # Define remote machines and roles
 declare -A SERVERS=(
-  #["gu-sso-1-a${DOMAIN_NAME}"]="keycloak"
-  #["gu-sso-2-a"${DOMAIN_NAME}]="keycloak"
-  #["gu-sso-1-b"${DOMAIN_NAME}]="keycloak"
-  #["gu-sso-2-b"${DOMAIN_NAME}]="keycloak"
-  #["gu-sso-lb-a"${DOMAIN_NAME}]="haproxy"
-  #["gu-sso-lb-b"${DOMAIN_NAME}]="haproxy"
-  #["gu-sso-infra"${DOMAIN_NAME}]="jenkins"
-  ["gu-apps-1-a"${DOMAIN_NAME}]="keycloak-demo"
-  ["gu-apps-1-b"${DOMAIN_NAME}]="keycloak-demo"
+  ["gu-sso-1-a${DOMAIN_NAME}"]="keycloak"
+  ["gu-sso-2-a"${DOMAIN_NAME}]="keycloak"
+  ["gu-sso-1-b"${DOMAIN_NAME}]="keycloak"
+  ["gu-sso-2-b"${DOMAIN_NAME}]="keycloak"
+  ["gu-sso-lb-a"${DOMAIN_NAME}]="haproxy"
+  ["gu-sso-lb-b"${DOMAIN_NAME}]="haproxy"
+#  ["gu-sso-infra"${DOMAIN_NAME}]="jenkins"
+#  ["gu-apps-1-a"${DOMAIN_NAME}]="keycloak-demo"
+#  ["gu-apps-1-b"${DOMAIN_NAME}]="keycloak-demo"
 )
 
 # Check if sshpass is installed
