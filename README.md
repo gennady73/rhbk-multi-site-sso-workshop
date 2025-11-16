@@ -50,7 +50,7 @@ This workshop is divided into the following labs. It is recommended to proceed i
 
    - [Configuring a secure systemd service](/02-RHBK-Server-Setup/01-service-management.md)    
    - [Hardening the build and maintenance lifecycle](/02-RHBK-Server-Setup/02-build-and-maintenance.md)    
-   - [TLS and Keystore setup](/02-RHBK-Server-Setup/03-certificate-setup.md)    
+   - [Workshop Certificates Setup](/02-RHBK-Server-Setup/03-certificate-setup.md)    
    - [Base server configuration (keycloak.conf)](/02-RHBK-Server-Setup/04-core-configuration.md)    
 
 * 03 **[Multi-Site-Replication](/03-Multi-Site-Replication/README.md)**
