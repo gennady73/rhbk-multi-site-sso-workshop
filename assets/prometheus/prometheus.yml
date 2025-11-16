@@ -23,10 +23,13 @@ scrape_configs:
         - 'sso-1-b.mydoman.com:9000'
         - 'sso-2-b.mydomain.com:9000'
 
+    scheme: https
+    tls_config:
     # --- THIS PART IS CRITICAL ---
     # It tells Prometheus to use HTTPS and to skip verifying the
     # self-signed/internal certificates on your Keycloak management ports.
-    scheme: https
-    tls_config:
-      insecure_skip_verify: true
-
+    #  insecure_skip_verify: true
+    # --- THIS IS THE CORRECTED CONFIG ---
+      # We are NOT using 'insecure_skip_verify: true'.
+      # Instead, we are telling Prometheus to trust our internal CA.
+      ca_file: /etc/prometheus/certs/lab-root-ca.crt

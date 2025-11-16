@@ -13,6 +13,7 @@ declare -A SERVERS=(
   ["gu-sso-2-b"${DOMAIN_NAME}]="keycloak"
   ["gu-sso-lb-a"${DOMAIN_NAME}]="haproxy"
   ["gu-sso-lb-b"${DOMAIN_NAME}]="haproxy"
+#  ["gu-sso-mon-1"${DOMAIN_NAME}]="monitor"
 #  ["gu-sso-infra"${DOMAIN_NAME}]="jenkins"
 #  ["gu-apps-1-a"${DOMAIN_NAME}]="keycloak-demo"
 #  ["gu-apps-1-b"${DOMAIN_NAME}]="keycloak-demo"
@@ -142,12 +143,38 @@ for HOST in "${!SERVERS[@]}"; do
     sshpass -p "$PASSWORD" ssh "$USERNAME@$HOST" "
       if ! echo '$PASSWORD' | sudo -S test -f /etc/pki/ca-trust/source/anchors/lab-root-ca.crt; then
         echo 'CA not found. Installing...'
-	echo '$PASSWORD' | sudo -S cp /tmp/lab-root-ca.crt /etc/pki/ca-trust/source/anchors/lab-root-ca.crt &&
+	      echo '$PASSWORD' | sudo -S cp /tmp/lab-root-ca.crt /etc/pki/ca-trust/source/anchors/lab-root-ca.crt &&
         echo '$PASSWORD' | sudo -S update-ca-trust extract
       else
         echo 'CA already installed. Skipping update.'
       fi
     "
+
+  elif [[ "$ROLE" == "monitor" ]]; then
+    DEST_DIR="/etc/prometheus/certs"  # as alternative use ~/setup/monitoring/containers/prometheus/certs/
+    echo "    Configuring monitoring host..."
+    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$USERNAME@$HOST" "echo '$PASSWORD' | sudo -S mkdir -p $DEST_DIR"
+    
+    echo "    Copying Root CA to $HOST..."
+    sshpass -p "$PASSWORD" scp "$CA_FILE" "$USERNAME@$HOST:/tmp/lab-root-ca.crt"
+
+    # Install the CA cert for Prometheus to use
+    sshpass -p "$PASSWORD" ssh "$USERNAME@$HOST" "
+      echo '$PASSWORD' | sudo -S mv /tmp/lab-root-ca.crt $DEST_DIR/lab-root-ca.crt &&
+      echo '$PASSWORD' | sudo -S chown root:root $DEST_DIR/lab-root-ca.crt &&
+      echo '$PASSWORD' | sudo -S chmod 644 $DEST_DIR/lab-root-ca.crt
+    "
+
+    # Optionally install it system-wide, as this is good practice
+    # sshpass -p "$PASSWORD" ssh "$USERNAME@$HOST" "
+    #   if ! echo '$PASSWORD' | sudo -S test -f /etc/pki/ca-trust/source/anchors/lab-root-ca.crt; then
+    #     echo 'CA not found. Installing system-wide...'
+    #     echo '$PASSWORD' | sudo -S cp $DEST_DIR/lab-root-ca.crt /etc/pki/ca-trust/source/anchors/lab-root-ca.crt &&
+    #     echo '$PASSWORD' | sudo -S update-ca-trust extract
+    #   else
+    #     echo 'CA already installed. Skipping system-wide update.'
+    #   fi
+    # "
 
     rm -rf "$TMPDIR"
   fi
