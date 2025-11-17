@@ -25,4 +25,10 @@ This chapter is divided into three main lab sections:
 
 1. **[Configuring the BIND DNS Server](/05-GSLB-Simulation/bind-setup.md) (The "Brain")**  
 2. **[Deploying the Health Check Script](/05-GSLB-Simulation/health-check-script.md) (The "Heart")**  
-3. **[Configuring the Global HAProxy](/05-GSLB-Simulation/global-haproxy.md) (The "Front Door")**
+3. **[Configuring the Global HAProxy](/05-GSLB-Simulation/global-haproxy.md) (The "Front Door")**   
+
+<br>
+
+## References
+* [Red Hat Build of Keycloak 26.2 - High Availability Guide](https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/26.2/html-single/high_availability_guide/index)
+* [RHBK - Highly available multi-site deployments](https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/26.0/html-single/upgrading_guide/index#highly_available_multi_site_deployments)   

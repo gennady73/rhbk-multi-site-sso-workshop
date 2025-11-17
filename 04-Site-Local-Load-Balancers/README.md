@@ -22,4 +22,9 @@ In this chapter, we will configure these two load balancers to provide three cri
 
 1. **TLS Termination:** They will handle all incoming HTTPS traffic, decrypt it, and forward it to the RHBK nodes.  
 2. **Session Affinity (Stickiness):** We will configure HAProxy to inspect Keycloak's `KC_SESSION` cookie. This ensures that once a user starts a session with one RHBK node, all their subsequent requests are "stuck" to that same node, guaranteeing session consistency.  
-3. **Health Checking:** Our HAProxy instances will continuously monitor the `/health/ready` endpoint of the RHBK nodes. If one node fails, HAProxy will automatically and instantly stop sending traffic to it, ensuring zero downtime for the site.
+3. **Health Checking:** Our HAProxy instances will continuously monitor the `/health/ready` endpoint of the RHBK nodes. If one node fails, HAProxy will automatically and instantly stop sending traffic to it, ensuring zero downtime for the site.    
+
+<br>
+
+## References
+* [Red Hat Build of Keycloak 26.2 - High Availability Guide](https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/26.2/html-single/high_availability_guide/index) 

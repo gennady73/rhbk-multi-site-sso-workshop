@@ -69,4 +69,11 @@ This chapter is divided into these main lab sections:
 2. **[Configuring Prometheus](/06-Observability-Stack/prometheus-config.md)**  
 3. **[Configuring Log Forwarding (Splunk)](/06-Observability-Stack/splunk-config.md)**  
 4. **[Importing Grafana Dashboards](/06-Observability-Stack/grafana-setup.md)**  
-5. **[Configuring Alertmanager](/06-Observability-Stack/alertmanager-config.md)**
+5. **[Configuring Alertmanager](/06-Observability-Stack/alertmanager-config.md)**   
+
+<br>
+
+## References
+* [Keycloak - Gaining insights with metrics](https://www.keycloak.org/observability/configuration-metrics)  
+* [Keycloak - Monitoring user activities with event metrics](https://www.keycloak.org/observability/event-metrics)  
+

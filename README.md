@@ -83,18 +83,36 @@ This workshop is divided into the following labs. It is recommended to proceed i
    - [Configuring Alertmanager](/06-Observability-Stack/04-alertmanager-config.md)
    - [Importing and analyzing Grafana dashboards](/06-Observability-Stack/05grafana-setup.md)    
 
+<br>
 
 ## **References**
-   *NOTE:* At moment of writing this workshop guide, the latest released version was `RHBK v.26.2.x`.
 
-- [Red Hat Build of Keycloak 26.2 - Server Configuration Guide.](https://docs.redhat.com/ko/documentation/red_hat_build_of_keycloak/26.2/pdf/server_configuration_guide/index)
+*Note: This workshop guide is scoped to **Red Hat Build of Keycloak (RHBK) v.26.2.x**. The following official documentation and resources served as the primary references for its development.*
 
-- [Red Hat Build of Keycloak 26.2 - High Availability Guide.](https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/26.2/pdf/high_availability_guide/Red_Hat_build_of_Keycloak-26.2-High_Availability_Guide-en-US.pdf)
+### **Red Hat Build of Keycloak (Official)**
 
-- [Red Hat Build of Keycloak 26.0 - Upgrading Guide. -\> 2.11.12. Highly available multi-site deployments](https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/26.0/html-single/upgrading_guide/index#highly_available_multi_site_deployments)
+* [Red Hat Build of Keycloak 26.2 \- Server Configuration Guide](https://docs.redhat.com/ko/documentation/red_hat_build_of_keycloak/26.2/pdf/server_configuration_guide/index)  
+* [Red Hat Build of Keycloak 26.2 \- High Availability Guide](https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/26.2/html-single/high_availability_guide/index)  
+* [Red Hat Build of Keycloak 26.0 \- Upgrading Guide \-\> 2.11.12. Highly available multi-site deployments](https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/26.0/html-single/upgrading_guide/index#highly_available_multi_site_deployments)
 
-- [Red Hat Data Grid 8.5 - Cross-Site Replication](https://docs.redhat.com/en/documentation/red_hat_data_grid/8.5/html-single/data_grid_cross-site_replication/index)   
+### **Infinispan & Cross-Site Replication**
 
-- [Infinispan 15.2.x - Cross-site replication](https://infinispan.org/docs/15.2.x/titles/xsite/xsite.html)  
+* [Red Hat Data Grid 8.5 \- Cross-Site Replication](https://www.google.com/search?q=https://docs.redhat.com/en/documentation/red_hat_data_grid/8.5/html-single/data_grid_cross_site_replication/index)  
+* [Infinispan 15.2.x \- Cross-site replication](https://infinispan.org/docs/15.2.x/titles/xsite/xsite.html)  
+* [Infinispan 15.0.x \- Client connections across sites](https://www.google.com/search?q=https://infinispan.org/docs/15.0.x/titles/xsite/xsite.html%23cross-site-client-connections_cross_site-replication)
 
-- [Keycloak - Configuring distributed caches.](https://www.keycloak.org/server/caching)   
+### **JGroups & Cluster Communication**
+
+* [JGroups Manual v3.x \- Advanced Concepts \-\> Relaying between multiple sites (RELAY2)](http://www.jgroups.org/manual-3.x/html/user-advanced.html#Relay2Advanced)  
+* [JGroups Manual v3.x \- Advanced Concepts \-\> Handling Network Partitions(Split Brain)](http://www.jgroups.org/manual-3.x/html/user-advanced.html#HandlingNetworkPartitions)  
+* [JGroups Manual v3.x \- Advanced Concepts \-\> Transport Protocols \-\> TCP](http://www.jgroups.org/manual-3.x/html/user-advanced.html#d0e2495)  
+* [JGroups Manual v3.x \- Ergonomics (dynamic optimization for JVM)](http://www.jgroups.org/manual-3.x/html/user-advanced.html#Ergonomics)
+
+### **Keycloak Community (Upstream)**
+
+* [Keycloak \- All configuration](https://www.keycloak.org/server/all-config)  
+* [Keycloak \- Configuring distributed caches](https://www.keycloak.org/server/caching)  
+* [Keycloak \- Building blocks multi-cluster deployments](https://www.keycloak.org/high-availability/multi-cluster/building-blocks)  
+* [Keycloak \- Gaining insights with metrics](https://www.keycloak.org/observability/configuration-metrics)  
+* [Keycloak \- Enabling and disabling features](https://www.keycloak.org/server/features)  
+* [Keycloak \- v26.2.0 Breaking changes](https://www.keycloak.org/docs/latest/upgrading/index.html#migrating-to-26-2-0)

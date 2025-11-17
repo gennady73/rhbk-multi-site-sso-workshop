@@ -37,4 +37,11 @@ Let's begin with the first step: setting up the systemd service.
 * [**01 \- Service Management (systemd)**](/02-RHBK-Server-Setup/01-service-management.md)  
 * [**02 \- Build and Maintenance (rebuild\_keycloak.sh)**](/02-RHBK-Server-Setup/02-build-and-maintenance.md)  
 * [**03 \- Certificate Setup**](/02-RHBK-Server-Setup/03-certificate-setup.md)  
-* [**04 \- Core Configuration (keycloak.conf)**](/02-RHBK-Server-Setup/04-core-configuration.md)
+* [**04 \- Core Configuration (keycloak.conf)**](/02-RHBK-Server-Setup/04-core-configuration.md)   
+
+<br>
+
+## References
+* [Red Hat Build of Keycloak 26.2 - Server Configuration Guide](https://docs.redhat.com/ko/documentation/red_hat_build_of_keycloak/26.2/pdf/server_configuration_guide/index)
+* [Keycloak - All configuration](https://www.keycloak.org/server/all-config)
+* [Keycloak - Enabling and disabling features](https://www.keycloak.org/server/features)  

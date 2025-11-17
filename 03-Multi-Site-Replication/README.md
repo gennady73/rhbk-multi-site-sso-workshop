@@ -94,3 +94,18 @@ The following matrix breaks down the pros, cons, and scaling differences you req
   2. **[Re-configure RHBK:](/03-Multi-Site-Replication/02-rhbk-ispn-ext-deployment.md)** We will update our keycloak.conf on all four RHBK nodes to disable the native multi-site feature and point to these new external servers instead.
   3. **[Configure Infinispan:](/03-Multi-Site-Replication/03-ispn-ext-deployment.md#step-3-create-the-infinispan-xsitexml-file)** We will provide the infinispan-xsite.xml file to configure them for cross-site replication with each other.  
   4. **[Configure firewall](/03-Multi-Site-Replication/04-firewall.md)** We will configure the ports required for commnication. 
+
+<br>
+
+## References
+
+### Cross-Site Replication
+* [RHBK - Highly available multi-site deployments](https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/26.0/html-single/upgrading_guide/index#highly_available_multi_site_deployments)
+* [Red Hat Data Grid 8.5 - Cross-Site Replication](https://www.google.com/search?q=https://docs.redhat.com/en/documentation/red_hat_data_grid/8.5/html-single/data_grid_cross_site_replication/index)
+* [Infinispan 15.2.x - Cross-site replication](https://infinispan.org/docs/15.2.x/titles/xsite/xsite.html)
+* [Keycloak - Configuring distributed caches](https://www.keycloak.org/server/caching)
+
+### JGroups (Cluster Communication)
+* [JGroups Manual v3.x - Relaying between multiple sites (RELAY2)](http://www.jgroups.org/manual-3.x/html/user-advanced.html#Relay2Advanced)
+* [JGroups Manual v3.x - Handling Network Partitions(Split Brain)](http://www.jgroups.org/manual-3.x/html/user-advanced.html#HandlingNetworkPartitions)
+* [JGroups Manual v3.x - Transport Protocols -> TCP](http://www.jgroups.org/manual-3.x/html/user-advanced.html#d0e2495) 
