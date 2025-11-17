@@ -1,4 +1,4 @@
-# **Chapter 5: Observability \- Monitoring and Logging**
+# **Chapter 6: Observability \- Monitoring and Logging**
 
 ### **The Story So Far**
 
@@ -19,7 +19,41 @@ Our system is fully functional, but it's a "black box." We have no idea what's h
 
 An unmonitored service is not a production-ready service. This final chapter will guide you through setting up a comprehensive observability stack to give us the "x-ray vision" we need to manage our cluster professionally.
 
-### **The Solution: A Centralized Observability Stack**
+### **The Solution: Enable RHBK metrics/logging and establish a Centralized Observability Stack**
+
+#### **Enable RHBK metrics**    
+
+First, the management path must be defined for RHBK server using [keycloak.conf](/assets/keycloak.conf.template) file:
+```bash
+http-management-relative-path=/
+``` 
+
+Then, metrics enabled usin the following section from [keycloak.conf](/assets/keycloak.conf.template) file:  
+
+```bash
+# Observability (Metrics & Logging)
+metrics-enabled=true
+health-enabled=true
+events-listeners=['metrics-listener']
+event-metrics-user-enabled=true
+event-metrics-user-events=login,logout,code_to_token,refresh_token,register
+event-metrics-user-tags=realm,clientId,idp
+http-metrics-histograms-enabled=true
+cache-metrics-histograms-enabled=true
+```
+
+#### **Enable RHBK logging**    
+The following section from [keycloak.conf](/assets/keycloak.conf.template) file is representing a logging configuration:   
+```bash 
+# Logging to File
+log=file
+log-file=/opt/keycloak/log/keycloak.log
+log-level=INFO
+log-file-rotation-size=20M
+log-file-rotation-max-files=5
+```
+
+#### **Establish a Centralized Observability Stack**    
 
 On our dedicated sso-mon VM in Site Zero, we will deploy a stack of industry-standard, containerized tools:
 
@@ -31,8 +65,15 @@ On our dedicated sso-mon VM in Site Zero, we will deploy a stack of industry-sta
 
 This chapter is divided into these main lab sections:
 
-1. **Deploying the Core Stack (Docker Compose)**  
-2. **Configuring Prometheus**  
-3. **Configuring Log Forwarding (Splunk)**  
-4. **Importing Grafana Dashboards**  
-5. **Configuring Alertmanager**
+1. **[Deploying the Core Stack (Docker Compose)](/06-Observability-Stack/deployment.md)**  
+2. **[Configuring Prometheus](/06-Observability-Stack/prometheus-config.md)**  
+3. **[Configuring Log Forwarding (Splunk)](/06-Observability-Stack/splunk-config.md)**  
+4. **[Importing Grafana Dashboards](/06-Observability-Stack/grafana-setup.md)**  
+5. **[Configuring Alertmanager](/06-Observability-Stack/alertmanager-config.md)**   
+
+<br>
+
+## References
+* [Keycloak - Gaining insights with metrics](https://www.keycloak.org/observability/configuration-metrics)  
+* [Keycloak - Monitoring user activities with event metrics](https://www.keycloak.org/observability/event-metrics)  
+

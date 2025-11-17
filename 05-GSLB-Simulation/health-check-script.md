@@ -1,4 +1,4 @@
-# **4.2 Lab: Deploying the Health Check Script**
+# **5.2 Lab: Deploying the Health Check Script**
 
 Now that we have our BIND DNS server (the "Brain"), we need to add the "Heart." This script will run every minute to check the health of our sites and give new orders to the Brain if a site has failed.
 

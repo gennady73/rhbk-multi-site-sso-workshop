@@ -7,21 +7,29 @@ global
     log         127.0.0.1 local2
     # This chroot jail must be created for the containerized version
     # mkdir -p /var/lib/haproxy && chown haproxy:haproxy /var/lib/haproxy
-    # chroot      /var/lib/haproxy
+    chroot      /var/lib/haproxy
     pidfile     /var/run/haproxy.pid
     user        haproxy
     group       haproxy
+    maxconn     1024
     daemon
+    ssl-skip-self-issued-ca
     stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+
+    # Default TLS settings for security
+    ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
 
 defaults
     mode                    http
     log                     global
     option                  httplog
-    option                  forwardfor
+    option                  dontlognull
+    #option                  http-server-close
+    option                  redispatch
     timeout connect         5000
     timeout client          50000
-    timeout server          50000
+    timeout server          30s
 
 #---------------------------------------------------------------------
 # DNS Resolver Section
@@ -29,9 +37,18 @@ defaults
 #---------------------------------------------------------------------
 resolvers mydns
     # Point to the BIND server running on the same machine
-    nameserver dns1 127.0.0.1:53
+    nameserver dns1 localhost:53
+    accepted_payload_size 8192
     # Use the low TTL from our zone file, not a cached value
     hold valid 10s
+
+resolvers app_dns
+    nameserver dns2 <DNS_2_IP>:53
+    nameserver dns3 <DNS_3_IP>:53
+    accepted_payload_size 8192
+    hold valid 10s
+
+
 
 #---------------------------------------------------------------------
 # Frontend: The single public entry point for all users
@@ -41,9 +58,9 @@ frontend global_sso_frontend
     bind *:443 ssl crt /etc/haproxy/ssl/global.pem
 
     # We use the 'Forwarded' header, which Keycloak is configured for
-    http-request set-var(req.proto) str(https) if { ssl_fc }
-    http-request set-var(req.proto) str(http) if !{ ssl_fc }
-    http-request set-header Forwarded "for=%[src];proto=%[var(req.proto)];host=%[req.hdr(Host)]"
+    #http-request set-var(req.proto) str(https) if { ssl_fc }
+    #http-request set-var(req.proto) str(http) if !{ ssl_fc }
+    #http-request set-header Forwarded "for=%[src];proto=%[var(req.proto)];host=%[req.hdr(Host)]"
 
     default_backend keycloak_sites
 
@@ -65,4 +82,19 @@ backend keycloak_sites
     # 3. 'init-addr none' forces HAProxy to resolve the name at runtime.
     # 4. 'ssl verify required' secures the connection to the site-local LB
     #    by checking its certificate against our internal CA.
-    server sso-cluster sso.mydomain.com:443 ssl verify required ca-file /etc/haproxy/ssl/internal-ca.pem resolvers mydns init-addr none
+    server sso-global-lb sso.mydomain.com:443 check ssl verify required ca-file /etc/haproxy/ssl/global.pem resolvers mydns init-addr none inter 2000ms
+
+#---------------------------------------------------------------------
+# HAProxy Stats Page (optional but highly recommended)
+#---------------------------------------------------------------------
+listen stats
+    bind *:9090
+    mode http
+    stats enable
+    stats hide-version
+    stats realm Haproxy\ Statistics
+    stats uri /haproxy?stats
+    # Replace 'user' and 'password' with secure credentials
+    stats auth <user>:<password>
+
+    

@@ -9,7 +9,9 @@ global
     pidfile     /var/run/haproxy.pid
     user        haproxy
     group       haproxy
+    maxconn     1024
     daemon
+    ssl-skip-self-issued-ca
 
     # Default TLS settings
     ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
@@ -19,7 +21,9 @@ defaults
     mode                    http
     log                     global
     option                  httplog
-    option                  forwardfor
+    option                  dontlognull
+    #option                  http-server-close
+    option                  redispatch
     timeout connect         5000
     timeout client          50000
     timeout server          50000
@@ -58,8 +62,8 @@ backend keycloak_local_backend
 
     # --- Backend Servers ---
     # Note on 'ssl verify none': 
-    # This is used in our lab because the backend Keycloak nodes use certificates
-    # signed by our own, non-public Internal CA, which this proxy doesn't trust by default.
+    # This is used in our lab because the backend Keycloak nodes use self-signed certificates,
+    # non-public Internal CA, which this proxy doesn't trust by default.
     # 'verify none' skips the check and allows the connection.
     #
     # In a production environment where the proxy's trust store is properly configured
@@ -67,10 +71,26 @@ backend keycloak_local_backend
     # 'ssl verify required ca-file /etc/haproxy/ssl/internal-ca.pem'
 
     # --- EDIT THE IPs BELOW FOR YOUR SITE ---
+    # Example:
     # For Site A (sso-lb-a):
-    server sso1 <sso-1-a-IP>:443 ssl verify none cookie sso1 check port 9000 check-ssl verify none
-    server sso2 <sso-2-a-IP>:443 ssl verify none cookie sso2 check port 9000 check-ssl verify none
-
+    # server sso1 <sso-1-a-IP>:443 ssl verify none cookie sso1 check port 9000 check-ssl verify none
+    # server sso2 <sso-2-a-IP>:443 ssl verify none cookie sso2 check port 9000 check-ssl verify none
     # For Site B (sso-lb-b):
     # server sso1 <sso-1-b-IP>:443 ssl verify none cookie sso1 check port 9000 check-ssl verify none
     # server sso2 <sso-2-b-IP>:443 ssl verify none cookie sso2 check port 9000 check-ssl verify none
+    server sso1a sso-1-a.mydomain.com:443 check ssl verify required ca-file /etc/haproxy/ssl/haproxy.pem cookie sso1a check port 9000 check-ssl verify none inter 2000ms
+    server sso2a sso-2-a.mydomain.com:443 check ssl verify required ca-file /etc/haproxy/ssl/haproxy.pem cookie sso2a check port 9000 check-ssl verify none inter 2000ms
+
+#---------------------------------------------------------------------
+# HAProxy Stats Page (optional but highly recommended)
+#---------------------------------------------------------------------
+listen stats
+    bind *:9090
+    mode http
+    stats enable
+    stats hide-version
+    stats realm Haproxy\ Statistics
+    stats uri /haproxy?stats
+    # Replace 'user' and 'password' with secure credentials
+    stats auth <user>:<password>
+
