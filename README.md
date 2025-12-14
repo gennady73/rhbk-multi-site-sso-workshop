@@ -6,12 +6,24 @@ This workshop is designed as a practical, hands-on journey to build a resilient,
 
 **The Challenge:** How do we keep our SSO service running smoothly, even if an entire datacenter or site goes offline? How do we ensure users maintain their sessions during a failover? And how do we build a system that is not only robust but also observable and maintainable?
 
-**The Approach:** We will build a complete, end-to-end, multi-site architecture on RHEL 9 VMs. We'll leverage RHBK's powerful native features (like multi-site replication), combine them with industry-standard tools like HAProxy and BIND, and build a complete observability stack with Prometheus, Grafana, and Splunk.
+**The Approach:** We will build a complete, end-to-end, multi-site architecture on RHEL 9 VMs. We'll leverage RHBK's powerful features (like multi-site), combine them with industry-standard tools like HAProxy and BIND, and build a complete observability stack with Prometheus, Grafana, and Splunk.
 
 Because this is a workshop using a non-registered domain, we will also implement a clever **Global Server Load Balancer (GSLB) simulation** using HAProxy and BIND. This gives us all the automated, health-check-driven failover benefits of a real GSLB without the cost and complexity of public DNS delegation.  
 
 *NOTE:* At moment of writing this workshop guide, the latest released version was `RHBK v.26.2.x`.
 
+⚠️  
+
+```
+DISCLAIMER: Community Proof of Concept (POC)
+
+This workshop guide is a work-in-progress and is intended strictly for 
+educational and experimental purposes.   
+It is NOT a supported Red Hat product or official reference architecture.    
+DO NOT deploy this configuration into a Production environment.    
+All scripts and configurations are provided "as-is" for demonstration only. 
+For production-grade support, please consult official Red Hat documentation and support channels.
+```
 
 ## **Target Audience**
 
