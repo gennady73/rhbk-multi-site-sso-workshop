@@ -90,8 +90,8 @@ The following matrix breaks down the pros, cons, and scaling differences you req
   2. **[Configure firewall](/03-Multi-Site-Replication/04-firewall.md)** We will configure the ports required for commnication. 
 
 * **Path B: External Infinispan Cross-Site (Decoupled Cache)**  
-  1. **[Deploy External Infinispan:](/03-Multi-Site-Replication/01-ispn-ext-deployment.md)** We will deploy two new Infinispan server containers on our sso-mon VM (one for Site A, one for Site B) using docker-compose.  
-  2. **[Re-configure RHBK:](/03-Multi-Site-Replication/02-rhbk-ispn-ext-deployment.md)** We will update our keycloak.conf on all four RHBK nodes to disable the native multi-site feature and point to these new external servers instead.
+  1. **[Deploy External Infinispan:](/03-Multi-Site-Replication/02-rhbk-ispn-ext-deployment.md)** We will deploy two new Infinispan server containers on our sso-mon VM (one for Site A, one for Site B) using docker-compose.  
+  2. **[Re-configure RHBK:](/03-Multi-Site-Replication/02-rhbk-ispn-ext-deployment.md#32-lab-re-configuring-rhbk-to-use-an-external-cache)** We will update our keycloak.conf on all four RHBK nodes to disable the native multi-site feature and point to these new external servers instead.
   3. **[Configure Infinispan:](/03-Multi-Site-Replication/03-ispn-ext-deployment.md#step-3-create-the-infinispan-xsitexml-file)** We will provide the infinispan-xsite.xml file to configure them for cross-site replication with each other.  
   4. **[Configure firewall](/03-Multi-Site-Replication/04-firewall.md)** We will configure the ports required for commnication. 
 
