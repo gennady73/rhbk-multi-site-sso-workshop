@@ -1,5 +1,11 @@
 # **3.1 Lab: Configuring RHBK to Use an Ebmedded(Internal) Cache**
 
+⚠️  
+```
+DISCLAIMER: An experimental approach tests new ideas without a long track record. 
+It involves unknown risks, fast learning loops, and uncertain results.
+```
+
 Now that we have a secure systemd service and valid TLS/SSL certificates, it's time to create the core configuration file that brings our server to life.   
 This file, `keycloak.conf`, controls everything from the database connection to the proxy settings and our multi-site replication.  
 This is arguably the most important file in our setup.
