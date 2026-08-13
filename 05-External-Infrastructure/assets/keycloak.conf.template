@@ -21,7 +21,7 @@ cache=ispn
 cache-stack=jdbc-ping
  
 # Native Multi-Site Configuration (Example for Site A)
-multi-site-enabled=true
+
 multi-site-site-name=site-a
 multi-site-port=7800
 multi-site-routes-provider=static

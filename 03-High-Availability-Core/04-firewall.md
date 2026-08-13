@@ -84,7 +84,7 @@ sudo firewall-cmd --reload
 
     ![RHBK and Embedded Infinispan ports topology](/assets/rhbk-internal-cache-firewall.png)
 
-**Relevant `keycloak.conf` snippet (native multi-site using embedded cache):**
+**Relevant `keycloak.conf` snippet (intra-site clustering using embedded cache):**
 
 ```ini
 # Intra-site caching
@@ -92,7 +92,7 @@ cache=ispn
 cache-stack=jdbc-ping
 
 # Native Multi-Site Configuration (example for Site A)
-multi-site-enabled=true
+
 multi-site-site-name=site-a
 multi-site-port=7800
 multi-site-routes-provider=static

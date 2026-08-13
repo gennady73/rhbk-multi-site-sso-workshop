@@ -38,7 +38,7 @@ By the end of this workshop, you will have:
 2. **Configured** RHBK to run as a secure, unprivileged systemd service.  
 3. **Implemented** intra-site (within a site) clustering using RHBK's embedded Infinispan cache.  
 4. **Explored** and **compared** two different cross-site replication models:  
-   - RHBK's **native multi-site feature**.  
+   - RHBK's **native clustered architecture**.  
    - The **external Infinispan cluster** model.  
 5. **Set up** site-local high availability using HAProxy load balancers.  
 6. **Simulated** a Global Server Load Balancer (GSLB) for automated, health-check-driven site failover.  
