@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    # This allows the container to resolve your Keycloak hostnames
+    # !! YOU MUST EDIT THESE IPs !!
+    extra_hosts:
+      - "sso-1-a.mydomain.com:<sso-1-a_IP>"
+      - "sso-2-a.mydomain.com:<sso-2-a_IP>"
+      - "sso-1-b.mydomain.com:<sso-1-b_IP>"
+      - "sso-2-b.mydomain.com:<sso-2-b_IP>"
+    restart: always
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: always
+
+  splunk:
+    image: splunk/splunk:latest
+    container_name: splunk
+    hostname: splunk
+    environment:
+      # This sets the Splunk admin password on first startup
+      - SPLUNK_PASSWORD=admin
+      # This automatically accepts the license agreement
+      - SPLUNK_START_ARGS=--accept-license
+    ports:
+      # Splunk Web UI
+      - "8000:8000"
+      # Splunk Management Port
+      - "8089:8089"
+      # Splunk Receiving Port for Forwarders
+      - "9997:9997"
+    volumes:
+      - splunk_data:/opt/splunk/var
+      - splunk_etc:/opt/splunk/etc
+    restart: always
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+  splunk_data: {}
+  splunk_etc: {}
+  

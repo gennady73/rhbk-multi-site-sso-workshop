@@ -1,0 +1,17 @@
+[Unit]
+Description=Red Hat Build of Keycloak Server
+After=network.target
+
+[Service]
+Type=idle
+User=keycloak
+Group=keycloak
+ExecStart=/opt/keycloak/bin/kc.sh start --optimized
+WorkingDirectory=/opt/keycloak
+TimeoutStartSec=600
+TimeoutStopSec=600
+Restart=on-failure
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

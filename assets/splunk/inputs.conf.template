@@ -1,0 +1,9 @@
+# Monitor the Keycloak log file directly
+[monitor:///opt/keycloak/log/keycloak.log]
+# Set the destination index in Splunk
+index = keycloak
+# Set the sourcetype. 'log4j' is a good generic choice for Keycloak's
+# default text format, which Splunk can parse for timestamps and log levels.
+sourcetype = log4j
+# Ensure this input is not disabled
+disabled = false
