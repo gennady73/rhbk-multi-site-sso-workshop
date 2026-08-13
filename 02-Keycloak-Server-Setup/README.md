@@ -17,7 +17,7 @@ Our goal is to configure the RHBK server on **all four** application nodes (sso-
 4. **Why** use an internal CA? For a secure, trusted network.  
    * **What** we will do: Create a Java Keystore (.p12) from the certificates generated in the prerequisite step.  
 5. **Why** use keycloak.conf? To centralize all configuration.  
-   * **What** we will do: Define the core keycloak.conf file, setting up our database, proxy, and logging—and most importantly, enabling the **native multi-site** features.
+   * **What** we will do: Define the core keycloak.conf file, setting up our database, proxy, and logging—and most importantly, enabling the **intra-site clustering** features.
 
 ## **Learning Objectives**
 
@@ -27,7 +27,7 @@ By the end of this chapter, you will have:
 * A systemd service file that manages the RHBK process.  
 * A rebuild\_keycloak.sh script for managing build-time changes.  
 * A server.keystore file for enabling TLS.  
-* A keycloak.conf file that configures the database, proxy, logging, metrics, and native multi-site replication.  
+* A keycloak.conf file that configures the database, proxy, logging, metrics, and intra-site clustering replication.  
 * Four fully functional, running RHBK server nodes, two in Site A and two in Site B.
 
 Let's begin with the first step: setting up the systemd service.

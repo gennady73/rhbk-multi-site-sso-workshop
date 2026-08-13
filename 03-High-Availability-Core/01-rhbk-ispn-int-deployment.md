@@ -15,7 +15,7 @@ This is arguably the most important file in our setup.
 Our configuration is built on two key architectural decisions you've made:
 
 1. **Dynamic Hostname Mode:** We will **not** hardcode a hostname (e.g., hostname=sso-1-a.mydomain.com). Instead, we will set `proxy-headers=forwarded` and `hostname-strict=false`. This tells RHBK to trust the `Forwarded` or `X-Forwarded-Host` header from our HAProxy. This makes our RHBK nodes portable and independent of the network, which is a modern best practice.  
-2. **Native Multi-Site Replication:** We will use RHBK's simple, built-in multi-site feature (`multi-site-enabled=true`). This is far less complex than managing a separate, external Infinispan cluster and is the recommended path for most deployments.
+2. **Native Multi-Site Replication:** We will use RHBK's simple, built-in clustered architecture (``). This is far less complex than managing a separate, external Infinispan cluster and is the recommended path for most deployments.
 
 ### **Lab Task: Create and Deploy keycloak.conf**
 
@@ -34,7 +34,7 @@ File **[keycloak.conf](/assets/keycloak.conf.template)**
     cache-stack=jdbc-ping
 
     # Native Multi-Site Configuration (Example for Site A)
-    multi-site-enabled=true
+    
     multi-site-site-name=site-a
     multi-site-port=7800
     multi-site-routes-provider=static

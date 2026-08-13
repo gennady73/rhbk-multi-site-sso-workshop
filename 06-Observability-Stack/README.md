@@ -5,7 +5,7 @@
 We have successfully built a complete, end-to-end, multi-site RHBK solution. Our system is:
 
 * **Resilient:** It's clustered within each site.  
-* **Highly Available:** It replicates sessions across sites using the native multi-site feature.  
+* **Highly Available:** It replicates sessions across sites using the native clustered architecture.  
 * **Automated:** It uses a custom GSLB to automatically fail over traffic during an outage.
 
 ### **The New Problem**

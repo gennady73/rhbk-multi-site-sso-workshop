@@ -49,7 +49,7 @@ For this workshop, we will provision a **dedicated, separate VM for our PostgreS
 A primary goal of this workshop is to give you hands-on experience with the two officially supported methods for cross-site replication in RHBK 26.2. They have different trade-offs, and the choice between them is critical.
 
 * **Path A: Native RHBK Multi-Site (Embedded Cache)**  
-  * **What it is:** This model uses the built-in, embedded Infinispan cache within each RHBK server node. The RHBK multi-site feature is enabled directly in keycloak.conf.  
+  * **What it is:** This model uses the built-in, embedded Infinispan cache within each RHBK server node. The RHBK clustered architecture is enabled directly in keycloak.conf.  
   * **How it works:** The RHBK nodes themselves are responsible for both intra-site clustering (nodes in Site A finding each other) and inter-site replication (Site A sending session data to Site B) using the JGroups RELAY2 protocol.  
 * **Path B: External Infinispan Cross-Site (Remote Cache)**  
   * **What it is:** This model uses a separate, standalone cluster of Infinispan servers. The RHBK nodes are configured as clients that connect to this external cache.  
