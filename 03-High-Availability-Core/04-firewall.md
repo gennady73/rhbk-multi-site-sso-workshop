@@ -1,169 +1,144 @@
-# Firewall & Network Requirements for RHBK Multi-Site Deployments
+# **Firewall & Network Requirements for RHBK Multi-Site Deployments**
+##### (v26.2/v26.6 Production-Hardened Guide)
 
-This document describes the **network and firewall ports** required for the RHBK multi-site workshop. It covers two deployment models and includes placeholders for diagrams (stored in `/assets`).
-
-- **Option A - External Infinispan (RHBK Multi-Site Feature Enabled)**
-- **Option B - Embedded Infinispan (JVM-local with site-to-site JGroups routes)**
-
-> Both options assume a shared or replicated PostgreSQL database is available (network C). The database is used by both models.
+This document details the **network and firewall ports** required for the Red Hat Build of Keycloak multi-site workshop. It maps port allocations across both deployment models (Path A and Path B) to ensure strict, secure-by-default VM environment topologies under RHEL 9.
 
 ---
 
-## Quick Topology Summary
+## **Quick Topology Summary**
 
-- **Site A**: 2x RHBK, HAProxy, (optional) External Infinispan node
-- **Site B**: 2x RHBK, HAProxy, (optional) External Infinispan node
-- **Shared/Replicated PostgreSQL**: Network C
-- **Monitoring stack**: Prometheus, Grafana, Alertmanager
-
----
-
-## Firewall matrix (high-level)
-
-| Component A | Component B | Purpose | Ports | Direction |
-|-------------|-------------|---------|-------|-----------|
-| Browser | HAProxy (Site A/B) | HTTPS to Keycloak | 443 / 8443 | Incoming |
-| HAProxy | RHBK nodes | Backend HTTP(S) | 8080 / 8443 | A \-\> B |
-| RHBK nodes | PostgreSQL | DB access | 5432 | A/B \-\> DB |
-| RHBK nodes | Prometheus | RHBK metrics access | 9000 | A/B \<\- Prometheus |
-| RHBK nodes (Site A) | RHBK nodes (Site B) | Cross-site cluster traffic (Option B) | 7800 (tcp/udp) | A \<\-\> B |
-| RHBK nodes | External Infinispan cluster | RHBK caching operations (Option A) | 11222 (hotrod) | A/B \-\> ISPN |
-| Infinispan Site A | Infinispan Site B | Cross-site replication (Option A) | 7900, 7800, 7200 | A \<\-\> B |
-| Prometheus | RHBK / HAProxy / Infinispan | Metrics scraping | 8080, 9000, 9090, etc. | Mon \-\> Targets |
+*   **Site A:** 2x Keycloak VM Nodes (`sso-1-a`, `sso-2-a`), 1x HAProxy VM Node (`sso-lb-a`), and (for Path B) standalone Infinispan nodes.
+*   **Site B:** 2x Keycloak VM Nodes (`sso-1-b`, `sso-2-b`), 1x HAProxy VM Node (`sso-lb-b`), and (for Path B) standalone Infinispan nodes.
+*   **Site Zero (Shared Infrastructure):** 1x Authoritative BIND DNS / Global HAProxy VM Node (`sso-gslb`), 1x Shared PostgreSQL VM Node (`db-host`), and 1x Monitoring & Logging VM Node (`sso-mon`).
 
 ---
 
-## Deployment Option A - External Infinispan (RHBK multi-site)
+## **Firewall Matrix (High-Level)**
 
-**Behavior**
-- RHBK connects to a local Infinispan node (HotRod) on the site.
-- Infinispan clusters (site A and site B) perform cross-site replication (xsite) between themselves.
+| Source Component | Destination Component | Purpose / Protocol | Standard Ports | Direction |
+| :--- | :--- | :--- | :--- | :--- |
+| **Browser / Client** | Global HAProxy (`sso-gslb`) | Public HTTPS Entrypoint | `443` (TCP) | Incoming |
+| **Global HAProxy** | Site HAProxy (`sso-lb-a/b`) | Dynamic Routing Delivery | `443` (TCP) | Outgoing to LBs |
+| **Site HAProxy** | Keycloak JVM Nodes | Backend HTTPS Delivery | `443` (TCP) | Outgoing to Nodes |
+| **Keycloak Nodes** | PostgreSQL DB | Database Connections | `5432` (TCP) | Outgoing to DB |
+| **Prometheus Monitor** | All Workshop Targets | Metrics Scraping / Pull | `9000` (Keycloak), `11222/11223` (Infinispan), `9090` (HAProxy Stats) | Outgoing to Nodes |
+| **Keycloak Site A (Path A)** | Keycloak Site B (Path A) | Cross-Site WAN JGroups `RELAY2` | `7800` (TCP) | Bidirectional |
+| **Keycloak Nodes (Path B)** | Infinispan Containers | Remote Caching Hot Rod Client | `11222` (Site A), `11223` (Site B) | Outgoing to Cache |
+| **Infinispan Site A (Path B)**| Infinispan Site B (Path B) | Cross-Site WAN JGroups `RELAY2` | `7800` (TCP) | Bidirectional |
 
-    ![RHBK and External Infinispan ports topology](/assets/rhbk-external-cache-firewall.png)
+---
 
+## **Path A: Native Embedded Cache Firewall Requirements**
 
-**Relevant `keycloak.conf` settings (example snippet for Site A):**
+![RHBK and Embedded Infinispan ports topology](../assets/rhbk-internal-cache-firewall.png)
 
-```ini
-# 1. Set the cache stack to 'tcp' (the older 'ispn' stack is removed)
+### **Behavior**
+*   Infinispan runs coupled inside each Keycloak JVM process.
+*   Nodes within a datacenter discover each other using a database registry via **`JDBC_PING`**.
+*   Nodes communicate across sites directly via **JGroups `RELAY2`** TCP channels on port `7800`.
+
+### **Relevant `keycloak.conf` Properties (Site A Example):**
+```properties
+cache=ispn
+cache-config-file=cache-ispn-xsite.xml
+spi-cache-embedded-default-site-name=site-a
+spi-cache-embedded-default-site-name-backup=site-b
+```
+
+### **Ports to Open on Keycloak VM Nodes (Path A):**
+*   `7800/tcp` - JGroups intra-site clustering and inter-site cross-site WAN replication.
+*   `9000/tcp` - Keycloak management port (exposes Prometheus metrics and local readiness health checks).
+
+### **Example `firewalld` Rules for Path A Nodes:**
+```bash
+# Allow local JGroups transport and cross-site replication
+sudo firewall-cmd --permanent --add-port=7800/tcp
+
+# Allow prometheus metrics scrape and local HAProxy health checking
+sudo firewall-cmd --permanent --add-port=9000/tcp
+
+# Apply changes
+sudo firewall-cmd --reload
+```
+
+---
+
+## **Path B: Standalone External Decoupled Cache Firewall Requirements**
+
+![RHBK and External Infinispan ports topology](../assets/rhbk-external-cache-firewall.png)
+
+### **Behavior**
+*   Keycloak instances run as stateless clients, making remote **Hot Rod** connection calls to the local external Infinispan container on port `11222`/`11223`.
+*   Stand-alone Infinispan containers cluster locally and replication over the WAN link is offloaded entirely to the Infinispan tier using JGroups `RELAY2` on port `7800`.
+
+### **Relevant `keycloak.conf` Properties (Site A Example):**
+```properties
 cache-stack=tcp
-
-# 2. Define the connection details for the external cluster (local to the site)
-cache-remote-host=<infinispan-node-ip>
+cache-remote-host=sso-mon.mydomain.com
 cache-remote-port=11222
-cache-remote-username=<admin_user>
-cache-remote-password=<admin_password>
 cache-remote-tls-enabled=false
 ```
 
-**Ports to open (Site A/ Site B):**
-- `11222/tcp` - HotRod (RHBK \-\> local Infinispan)
-- `7800-7900/tcp` - JGroups / Infinispan internode (site-local)
-- `7900/tcp` - xsite backup/replication
-- `7200/udp` - optional diagnostics
-- `9000/tcp` - RHBK metrics / management
+### **Ports to Open on Standalone Infinispan Hosts (Path B):**
+*   `11222/tcp` - Site A Hot Rod endpoint connection port.
+*   `11223/tcp` - Site B Hot Rod endpoint connection port (mapped on shared hosts to avoid interface conflicts).
+*   `7800/tcp` - JGroups cross-site WAN replication traffic.
+*   `7900/tcp` - JGroups internal state transfer synchronization port.
 
-**Example `firewalld` rules (external mode):**
-
+### **Example `firewalld` Rules for Standalone Infinispan Host VM:**
 ```bash
+# Allow Hot Rod clients to write and query sessions
 sudo firewall-cmd --permanent --add-port=11222/tcp
-sudo firewall-cmd --permanent --add-port=7800-7900/tcp
-sudo firewall-cmd --permanent --add-port=7900/tcp
-sudo firewall-cmd --permanent --add-port=7200/udp
-sudo firewall-cmd --permanent --add-port=9000/tcp
-sudo firewall-cmd --reload
-```
+sudo firewall-cmd --permanent --add-port=11223/tcp
 
----
-
-## Deployment Option B - Embedded Infinispan (multi-site via JGroups routes)
-
-**Behavior**
-- Infinispan runs embedded inside each RHBK JVM.
-- RHBK nodes communicate across sites using JGroups/TCP (or configured stack) and the multi-site settings in `keycloak.conf`.
-
-    ![RHBK and Embedded Infinispan ports topology](/assets/rhbk-internal-cache-firewall.png)
-
-**Relevant `keycloak.conf` snippet (intra-site clustering using embedded cache):**
-
-```ini
-# Intra-site caching
-cache=ispn
-cache-stack=jdbc-ping
-
-# Native Multi-Site Configuration (example for Site A)
-
-multi-site-site-name=site-a
-multi-site-port=7800
-multi-site-routes-provider=static
-multi-site-static-routes=site-b:10.20.1.11[7800],10.20.1.12[7800]
-```
-
-**Ports to open (embedded mode):**
-- `7800/tcp` and/or `7800/udp` - JGroups site-to-site communication
-- `7200/udp` - optional diagnostics
-
-**Example `firewalld` rules (embedded mode):**
-
-```bash
+# Allow cross-site WAN replication and JGroups cluster traffic
 sudo firewall-cmd --permanent --add-port=7800/tcp
-sudo firewall-cmd --permanent --add-port=7800/udp
-sudo firewall-cmd --permanent --add-port=7200/udp
+sudo firewall-cmd --permanent --add-port=7900/tcp
+
+# Apply changes
 sudo firewall-cmd --reload
 ```
 
 ---
 
-## Shared components (all modes)
+## **Shared Core Components Firewall Requirements**
 
-**PostgreSQL (shared/replicated DB):**
-- `5432/tcp` - RHBK \-\> DB
+Regardless of your chosen caching path, the following core infrastructural ports must be configured across the environment:
 
-**HAProxy (site-local load balancer):**
-- `443/tcp` - Client \-\> HAProxy
-- `8080/8443/tcp` - HAProxy \-\> RHBK backend
-
-**Monitoring stack (examples):**
-- `9090/tcp` - Prometheus
-- `3000/tcp` - Grafana
-- `9093/tcp` - Alertmanager
-
-**Example firewall commands**
-
+### **PostgreSQL Database Node (`db-host`):**
+*   `5432/tcp` - Allow relational schema queries and connections from all Keycloak JVM hosts.
 ```bash
 sudo firewall-cmd --permanent --add-port=5432/tcp
+sudo firewall-cmd --reload
+```
+
+### **Site-Local Load Balancers (`sso-lb-a`, `sso-lb-b`):**
+*   `443/tcp` - Allow incoming client HTTPS requests.
+*   `9090/tcp` - Allow Prometheus to pull local HAProxy health metrics.
+```bash
 sudo firewall-cmd --permanent --add-port=443/tcp
-sudo firewall-cmd --permanent --add-port=8080/tcp
-sudo firewall-cmd --permanent --add-port=8443/tcp
 sudo firewall-cmd --permanent --add-port=9090/tcp
-sudo firewall-cmd --permanent --add-port=3000/tcp
 sudo firewall-cmd --reload
 ```
 
 ---
 
-## Verification & Troubleshooting
+## **Verification & Troubleshooting**
 
-**Check open ports:**
+### **Check Active Open Port Mappings:**
 ```bash
 sudo firewall-cmd --list-ports
 ```
 
-**Test connectivity:**
+### **Test Remote Network Reachability:**
+Verify that socket connections can be established across VM boundaries using `nc` (netcat):
 ```bash
-nc -zv <infinispan-host> 11222
-nc -zv <postgres-host> 5432
-nc -zv <remote-rhbk-node> 7800
+# Test PostgreSQL database connectivity from a Keycloak node
+nc -zv db-host.mydomain.com 5432
+
+# Test local Infinispan connection from a Keycloak node
+nc -zv sso-mon.mydomain.com 11222
+
+# Test WAN JGroups channel from Site A to Site B
+nc -zv sso-1-b.mydomain.com 7800
 ```
-
-**Infinispan cross-site status:**
-- Use the Infinispan management UI or CLI to view site status (should be `online`).
-
-**RHBK cache & cluster check:**
-- RHBK Admin Console \-\> Server Info \-\> Caches \-\> Nodes
-
----
-
-## References
-- [Lab: `Re-configuring RHBK to Use an External Cache` -\> `Update the keycloak.conf File`](/03-Multi-Site-Replication/02-rhbk-ispn-ext-deployment.md#step-2-update-the-keycloakconf-file)  
-- [Lab `Configuring RHBK to Use an Embedded(Internal) Cache` -\> `Create the keycloak.conf File`](/03-Multi-Site-Replication/01-rhbk-ispn-int-deployment.md#1-create-the-keycloakconf-file)    

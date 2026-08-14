@@ -1,21 +1,21 @@
-<infinispan
-    xmlns="urn:infinispan:config:15.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="urn:infinispan:config:15.0 https://infinispan.org/schemas/infinispan-config-15.0.xsd
-                        urn:infinispan:server:15.0 https://infinispan.org/schemas/infinispan-server-15.0.xsd
-                        urn:org:jgroups http://www.jgroups.org/schema/jgroups-5.3.xsd"
-    xmlns:server="urn:infinispan:server:15.0">
+<infinispan xmlns="urn:infinispan:config:15.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="urn:infinispan:config:15.0 https://infinispan.org/schemas/infinispan-config-15.0.xsd
+                                urn:infinispan:server:15.0 https://infinispan.org/schemas/infinispan-server-15.0.xsd
+                                urn:org:jgroups http://www.jgroups.org/schema/jgroups-5.3.xsd"
+            xmlns:server="urn:infinispan:server:15.0">
 
     <jgroups>
+        <!-- Unicast/Static Discovery (TCP stack) - Essential for non-multicast VM networks -->
         <stack name="relay-global" extends="tcp">
             <TCPPING initial_hosts="${jgroups.tcpping.initial_hosts:192.0.2.0[7800]}"
-                stack.combine="REPLACE"
-                stack.position="MPING"
-                port_range="0" />
+                     stack.combine="REPLACE"
+                     stack.position="MPING"
+                     port_range="0" />
             <MERGE3 min_interval="10000" max_interval="30000" />
-            <FD_SOCK />
-            <FD_ALL timeout="3000" interval="1000" />
-            <VERIFY_SUSPECT timeout="1500" />
+            <FD_SOCK2 />
+            <FD_ALL3 timeout="40000" interval="5000" /> <!-- Tuned conservatively to survive hypervisor jitter -->
+            <VERIFY_SUSPECT2 timeout="1500" />
             <BARRIER />
             <UNICAST3 />
             <MFC max_credits="2M" min_threshold="0.4" />
@@ -23,11 +23,18 @@
             <RSVP resend_interval="2000" timeout="10000" />
         </stack>
 
+        <!-- UDP stack for Intra-site discovery combined with WAN RELAY2 bridge -->
         <stack name="tcp-xsite" extends="udp">
-            <relay.RELAY2 site="${infinispan.site.name}" xmlns="urn:org:jgroups"
-                max_site_masters="10"
-                can_become_site_master="false" async_relay_creation="true" />
-
+            <!-- 
+               CRITICAL CORRECTION: 'can_become_site_master' MUST be set to 'true'.
+               Setting it to false on all nodes breaks site-master election and replication.
+               Setting 'max_site_masters' to a higher value prevents routing bottlenecks.
+            -->
+            <relay.RELAY2 site="${infinispan.site.name}"
+                          xmlns="urn:org:jgroups"
+                          max_site_masters="10"
+                          can_become_site_master="true"
+                          async_relay_creation="true" />
             <remote-sites default-stack="relay-global" cluster="${infinispan.cluster.name:cluster}">
                 <remote-site name="${infinispan.site.name}" />
                 <remote-site name="${infinispan.backup.site.name}" />
@@ -36,18 +43,16 @@
     </jgroups>
 
     <cache-container name="default" statistics="true">
-
         <transport cluster="${infinispan.cluster.name:cluster}"
-            stack="${infinispan.cluster.stack:tcp-xsite}"
-            site="${infinispan.site.name}"
-            node-name="${infinispan.node.name:}" />
-
+                   stack="${infinispan.cluster.stack:tcp-xsite}"
+                   site="${infinispan.site.name}"
+                   node-name="${infinispan.node.name:}" />
         <security>
             <authorization />
         </security>
-
         <metrics gauges="true" histograms="true" names_as_tags="true" />
 
+        <!-- --- Local Caches --- -->
         <local-cache name="realms" simple-cache="true" statistics="true">
             <encoding>
                 <key media-type="application/x-java-object" />
@@ -56,8 +61,7 @@
             <memory max-count="10000" />
         </local-cache>
 
-        <local-cache name="users"
-            simple-cache="true" statistics="true">
+        <local-cache name="users" simple-cache="true" statistics="true">
             <encoding>
                 <key media-type="application/x-java-object" />
                 <value media-type="application/x-java-object" />
@@ -65,8 +69,7 @@
             <memory max-count="10000" />
         </local-cache>
 
-        <local-cache name="authorization"
-            simple-cache="true" statistics="true">
+        <local-cache name="authorization" simple-cache="true" statistics="true">
             <encoding>
                 <key media-type="application/x-java-object" />
                 <value media-type="application/x-java-object" />
@@ -74,8 +77,7 @@
             <memory max-count="10000" />
         </local-cache>
 
-        <local-cache name="keys"
-            simple-cache="true" statistics="true">
+        <local-cache name="keys" simple-cache="true" statistics="true">
             <encoding>
                 <key media-type="application/x-java-object" />
                 <value media-type="application/x-java-object" />
@@ -83,9 +85,8 @@
             <expiration max-idle="3600000" />
             <memory max-count="1000" />
         </local-cache>
-        
-        <local-cache name="crl"
-            simple-cache="true" statistics="true">
+
+        <local-cache name="crl" simple-cache="true" statistics="true">
             <encoding>
                 <key media-type="application/x-java-object" />
                 <value media-type="application/x-java-object" />
@@ -93,9 +94,9 @@
             <expiration lifespan="-1" />
             <memory max-count="1000" />
         </local-cache>
-        
-        <replicated-cache name="work"
-            statistics="true">
+
+        <!-- --- Replicated Caches --- -->
+        <replicated-cache name="work" statistics="true">
             <transaction mode="FULL_XA" />
             <expiration lifespan="-1" />
             <backups>
@@ -103,8 +104,8 @@
             </backups>
         </replicated-cache>
 
-        <distributed-cache
-            name="authenticationSessions" owners="4" statistics="true">
+        <!-- --- Distributed Session Caches --- -->
+        <distributed-cache name="authenticationSessions" owners="2" statistics="true">
             <transaction mode="NON_XA" />
             <expiration lifespan="-1" />
             <encoding>
@@ -115,19 +116,65 @@
                 <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
             </backups>
         </distributed-cache>
-        
-        <distributed-cache
-            name="sessions" owners="4" statistics="true">
+
+        <!-- 
+           CRITICAL CORRECTION FOR KEYCLOAK 26: Added explicit 'application/x-protostream' 
+           encoding configuration blocks to prevent Hot Rod client serialization failures.
+           Also eliminated the duplicated cache declarations that previously caused startup crashes.
+        -->
+        <distributed-cache name="sessions" owners="2" statistics="true">
             <transaction mode="NON_XA" />
             <expiration lifespan="-1" />
+            <encoding>
+                <key media-type="application/x-protostream" />
+                <value media-type="application/x-protostream" />
+            </encoding>
             <memory max-count="10000" />
             <backups>
                 <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
             </backups>
         </distributed-cache>
 
-        <distributed-cache
-            name="authenticationSessions" owners="4" statistics="true">
+        <distributed-cache name="clientSessions" owners="2" statistics="true">
+            <transaction mode="NON_XA" />
+            <expiration lifespan="-1" />
+            <encoding>
+                <key media-type="application/x-protostream" />
+                <value media-type="application/x-protostream" />
+            </encoding>
+            <memory max-count="10000" />
+            <backups>
+                <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
+            </backups>
+        </distributed-cache>
+
+        <distributed-cache name="offlineSessions" owners="2" statistics="true">
+            <transaction mode="NON_XA" />
+            <expiration lifespan="-1" />
+            <encoding>
+                <key media-type="application/x-protostream" />
+                <value media-type="application/x-protostream" />
+            </encoding>
+            <memory max-count="10000" />
+            <backups>
+                <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
+            </backups>
+        </distributed-cache>
+
+        <distributed-cache name="offlineClientSessions" owners="2" statistics="true">
+            <transaction mode="NON_XA" />
+            <expiration lifespan="-1" />
+            <encoding>
+                <key media-type="application/x-protostream" />
+                <value media-type="application/x-protostream" />
+            </encoding>
+            <memory max-count="10000" />
+            <backups>
+                <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
+            </backups>
+        </distributed-cache>
+
+        <distributed-cache name="loginFailures" owners="2" statistics="true">
             <transaction mode="NON_XA" />
             <expiration lifespan="-1" />
             <encoding>
@@ -138,58 +185,8 @@
                 <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
             </backups>
         </distributed-cache>
-        
-        <distributed-cache
-            name="sessions" owners="4" statistics="true">
-            <transaction mode="NON_XA" />
-            <expiration lifespan="-1" />
-            <memory max-count="10000" />
-            <backups>
-                <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
-            </backups>
-        </distributed-cache>
-        
-        <distributed-cache
-            name="clientSessions" owners="4" statistics="true">
-            <transaction mode="NON_XA" />
-            <expiration lifespan="-1" />
-            <memory max-count="10000" />
-            <backups>
-                <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
-            </backups>
-        </distributed-cache>
-        
-        <distributed-cache
-            name="offlineSessions" owners="4" statistics="true">
-            <transaction mode="NON_XA" />
-            <expiration lifespan="-1" />
-            <memory max-count="10000" />
-            <backups>
-                <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
-            </backups>
-        </distributed-cache>
-        
-        <distributed-cache
-            name="offlineClientSessions" owners="4" statistics="true">
-            <transaction mode="NON_XA" />
-            <expiration lifespan="-1" />
-            <memory max-count="10000" />
-            <backups>
-                <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
-            </backups>
-        </distributed-cache>
-        
-        <distributed-cache
-            name="loginFailures" owners="4" statistics="true">
-            <transaction mode="NON_XA" />
-            <expiration lifespan="-1" />
-            <backups>
-                <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
-            </backups>
-        </distributed-cache>
-        
-        <distributed-cache
-            name="actionTokens" owners="4" statistics="true">
+
+        <distributed-cache name="actionTokens" owners="2" statistics="true">
             <transaction mode="NON_XA" />
             <encoding>
                 <key media-type="application/x-protostream" />
@@ -201,7 +198,6 @@
                 <backup site="${infinispan.backup.site.name}" strategy="SYNC" />
             </backups>
         </distributed-cache>
-
     </cache-container>
 
     <server:server>
@@ -210,12 +206,9 @@
                 <server:inet-address value="${infinispan.bind.address:0.0.0.0}" />
             </server:interface>
         </server:interfaces>
-
-        <server:socket-bindings default-interface="public"
-            port-offset="${infinispan.socket.binding.port-offset:0}">
+        <server:socket-bindings default-interface="public" port-offset="${infinispan.socket.binding.port-offset:0}">
             <server:socket-binding name="default" port="${infinispan.bind.port:11222}" />
         </server:socket-bindings>
-
         <server:security>
             <server:security-realms>
                 <server:security-realm name="default">
@@ -223,7 +216,6 @@
                 </server:security-realm>
             </server:security-realms>
         </server:security>
-
         <server:endpoints socket-binding="default" security-realm="default" />
     </server:server>
 

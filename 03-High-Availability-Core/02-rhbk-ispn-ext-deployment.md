@@ -1,131 +1,109 @@
 # **3.2 Lab: Re-configuring RHBK to Use an External Cache**
+##### (v26.2/v26.6 Production-Hardened Guide)
 
-Now that our external Infinispan cluster is running, we must reconfigure our RHBK nodes to use it. This involves "gutting" the native caching configuration from keycloak.conf and replacing it with settings that point to our new external service.
+Now that our external Infinispan cluster is running, we must reconfigure our Keycloak (RHBK) nodes to connect to it. This process involves offloading the cross-site replication layer by removing the embedded native clustering configurations from `keycloak.conf` and replacing them with client-side settings that point directly to our standalone external Infinispan nodes (Path B).
 
-### **Step 1: Launch the External Infinispan Cluster**
+---
 
-On your `sso-mon` VM, navigate to the new directory and start the cluster:
+### **The "Why": Decoupled Cache Client Mechanics**
+
+By offloading the session caching tier, Keycloak nodes become stateless application servers. To enable this connection model in Keycloak 26, two key configurations are required:
+
+1.  **The `multi-site` Build Feature:** Keycloak's remote cache client properties (`cache-remote-*`) are locked behind build-time feature gates. To expose these options, Keycloak must be compiled with the **`multi-site`** feature enabled via the `kc.sh build --features=multi-site` command.
+2.  **Hot Rod Client-Server Communication:** Rather than using JGroups protocol layers to talk directly to other Keycloak JVMs, Keycloak leverages the high-performance, binary **Hot Rod** protocol to communicate with the standalone Infinispan cluster. Keycloak nodes will act as Hot Rod clients, connecting strictly to the Infinispan node located within their own local datacenter (avoiding WAN network latency for active operations). The external Infinispan cluster then handles all intra-site and cross-WAN JGroups replication.
+
+---
+
+### **Lab Task: Reconfigure and Rebuild Keycloak Nodes**
+
+You will perform these tasks on **all four** Keycloak VM nodes (`sso-1-a`, `sso-2-a`, `sso-1-b`, and `sso-2-b`).
+
+#### **Step 1: Launch the External Infinispan Cluster**
+
+Ensure that your external Infinispan containers are active on your `sso-mon` VM in Site Zero:
 
 ```bash
-cd /opt/monitoring/infinispan/  
+cd /opt/monitoring/infinispan/
 docker-compose -f docker-compose.yml up -d
 ```
 
-You now have two Infinispan servers running.
+Verify that the ports are reachable:
+*   Site A's Infinispan node listens on port `11222`.
+*   Site B's Infinispan node listens on port `11223` (mapped to avoid interface conflicts on the single monitor host).
 
-* infinispan-site-a is reachable at \<sso-mon-ip\>:11222  
-* infinispan-site-b is reachable at \<sso-mon-ip\>:11223
+#### **Step 2: Update the `keycloak.conf` Configuration**
 
-### **Step 2: Update the keycloak.conf File**
+On all four Keycloak nodes, edit `/opt/keycloak/conf/keycloak.conf` to replace the embedded clustering properties with the remote client configuration.
 
-On **all four** RHBK nodes, you must now edit `/opt/keycloak/conf/keycloak.conf`.   
-We will make the following changes:
-
-1. **Remove** the cache=ispn and cache-stack=jdbc-ping lines.  
-    The new configration is `cache-stack=tcp`
-2. **Remove** all of the `multi-site-*` configuration lines.  
-3. **Add** new lines of `cache-remote-*` to point to the external cache.
-
-Your new configuration file should look like following. Note the changes in the "UPDATED CACHING CONFIGURATION" section.   
-*Remember:* apply following configuration for both sites(`Site A` and `Site B` in this case).
-
-**File: /opt/keycloak/conf/keycloak.conf**
-
-```bash
-# --- /opt/keycloak/conf/keycloak.conf ---
-# Database
-db=postgres
-db-username=<db_user>
-db-password=<db_pass>
-db-url=jdbc:postgresql://<db_host>:5432/keycloak
-
-# Proxy & Hostname (Dynamic Mode)
-hostname-strict=false
-hostname-backchannel-dynamic=false
-proxy-headers=forwarded
-http-relative-path=/auth
-http-management-relative-path=/
-https-port=443
-hostname-debug=true
-
-# Keystore
-https-key-store-file=/opt/keycloak/conf/server.keystore
-https-key-store-password=<keystore_pass>
-
-# --- UPDATED CACHING CONFIGURATION ---
-# 1. Set the cache stack to 'tcp' (as the old 'ispn' stack is removed)
-cache-stack=tcp
-
-# 2. Define the connection details for the external cluster.
-#    Keycloak will connect to the Infinispan node in its own site.
-
-# --- For Site A nodes (sso-1-a, sso-2-a): ---
-# Point to the 'infinispan-a' container port
-cache-remote-host=<sso-mon-ip>
-cache-remote-port=11222
-cache-remote-username=<admin_user>
-cache-remote-password=<admin_user_password>
-cache-remote-tls-enabled=false # Disabling TLS for simplicity in this lab
-
-# --- For Site B nodes (sso-1-b, sso-2-b): ---
-# Point to the 'infinispan-b' container port
-# cache-remote-host=<sso-mon-ip>
-# cache-remote-port=11223
-# cache-remote-username=<admin_user>
-# cache-remote-password=<admin_user_password>
-# cache-remote-tls-enabled=false
-
-# --- Observability ---
-# (All metrics and logging settings remain the same)
-metrics-enabled=true
-health-enabled=true
-events-listeners=['metrics-listener']
-# ... etc ...
+**Remove the legacy caching lines:**
+```properties
+# REMOVE these lines:
+# cache=ispn
+# cache-stack=jdbc-ping
+# spi-cache-embedded-default-cluster-name=...
 ```
 
-### **Step 3: Re-build and Restart All RHBK Nodes**
+**Add the remote cache client configurations:**
 
-Because we have fundamentally changed the caching stack (from ispn to tcp and remote-host), a **re-build is required**.
+For **Site A nodes (`sso-1-a`, `sso-2-a`):**
+```properties
+# --- UPDATED REMOTE CACHING CONFIGURATION (SITE A) ---
+cache-stack=tcp
+cache-remote-host=sso-mon.mydomain.com
+cache-remote-port=11222
+cache-remote-username=admin
+cache-remote-password=password
+cache-remote-tls-enabled=false # Disabled for lab environment simplicity
+```
 
-On **all four** RHBK nodes:
+For **Site B nodes (`sso-1-b`, `sso-2-b`):**
+```properties
+# --- UPDATED REMOTE CACHING CONFIGURATION (SITE B) ---
+cache-stack=tcp
+cache-remote-host=sso-mon.mydomain.com
+cache-remote-port=11223
+cache-remote-username=admin
+cache-remote-password=password
+cache-remote-tls-enabled=false # Disabled for lab environment simplicity
+```
 
-1. Stop the service:    
+*Note: In production environments, `cache-remote-tls-enabled` must always be set to `true` to encrypt Hot Rod session transmissions.*
+
+#### **Step 3: Update and Run the Build Script**
+
+To activate the remote cache client options, we must append the `multi-site` feature to our build flags. 
+
+1.  Edit `/opt/keycloak/bin/rebuild_keycloak.sh` on all nodes and update the `FEATURES` variable:
+    ```bash
+    # Update FEATURES to include multi-site
+    FEATURES="token-exchange,impersonation,multi-site"
+    ```
+2.  Stop the active systemd service:
     ```bash
     sudo systemctl stop keycloak
-    ```  
-2. Make sure the `multi-site` feature is listed in the value of `FEATURES` variable inside of `rebuild_keycloak.sh` script. 
-
-    ```bash
-    # Define the features to be enabled here for easy maintenance
-    FEATURES="hostname:v2,token-exchange,impersonation,multi-site"
     ```
-
-2. Run your build script:   
+3.  Execute the build script to compile the optimized remote-cache runtime:
     ```bash
     sudo /opt/keycloak/bin/rebuild_keycloak.sh
     ```
-
-    *NOTE:* The main principle of enabling features is represented in the script is by the following line:   
-
-    ```bash
-    $KC_HOME/bin/kc.sh build --features=$FEATURES"
-    ```
-
-3. Start the service:   
+4.  Restart the Keycloak service:
     ```bash
     sudo systemctl start keycloak
     ```
 
+---
+
 ### **Verification**
 
-Your RHBK cluster is now running in a completely different architecture. The multi-site replication is no longer handled by Keycloak itself, but is fully offloaded to the external Infinispan cluster.
+Your Keycloak cluster is now operating in a completely decoupled, stateless configuration. All session tracking and token replication are handled off-host by the standalone Infinispan nodes.
 
-You can verify this using the same method as before:
+To verify cross-site session replication over the GSLB:
 
-1. Log into `https://sso-global-lb.mydomain.com/auth` (which should resolve to Site A).  
-2. Go to the Admin Console and find your session.  
-3. Shut down your `sso-lb-a` load balancer.  
-4. Your GSLB script will detect the failure and update DNS to point to Site B.  
-5. Refresh your browser. You should be seamlessly logged in to Site B, proving the session was replicated by the external cluster.
-
-You have now successfully built and compared both the "Native" and "External" multi-site architectures.
+1.  Navigate to your GSLB address: `https://sso.mydomain.com/auth` (which should route to Site A's load balancer).
+2.  Log into the Admin Console and verify that your active user session is visible.
+3.  Simulate a site failure by stopping HAProxy on Site A:
+    ```bash
+    sudo systemctl stop haproxy # Run on sso-lb-a
+    ```
+4.  The `gslb_check.sh` health check script in Site Zero will detect the outage, atomically update the BIND zone record via RFC 2136 `nsupdate`, and redirect the dynamic hostname to Site B.
+5.  Refresh your browser. You should remain seamlessly logged in to the console on Site B, proving that the remote Infinispan containers successfully replicated your session over the WAN link.
