@@ -79,27 +79,27 @@ This repository is structured around a continuous modernization roadmap, moving 
 Follow the labs sequentially to build your multi-site SSO environment:
 
 #### **Chapter 1: Foundations**
-*   [1.1 Architecture & Core Goals](./01-Introduction/introduction.md)
+*   [1.1 Architecture & Core Goals](./00-Architecture-Overview/./01-system-overview.md)
 
 #### **Chapter 2: RHBK Core Server Setup**
-*   [2.1 Service Management (systemd) Guide](./02-Keycloak-Server-Setup/01-service-management-v4.md)
-*   [2.2 Administrative Build & Maintenance Guide](./02-Keycloak-Server-Setup/02-build-and-maintenance-v4.md)
+*   [2.1 Service Management (systemd) Guide](./02-Keycloak-Server-Setup/01-service-management.md)
+*   [2.2 Administrative Build & Maintenance Guide](02-Keycloak-Server-Setup/02-build-and-maintenance.md)
 *   [2.3 Automated PKI and Certificate Setup](./02-Keycloak-Server-Setup/03-certificate-setup.md)
-*   [2.4 Core Server Configuration (keycloak.conf)](./02-Keycloak-Server-Setup/04-core-configuration-v4.md)
+*   [2.4 Core Server Configuration (keycloak.conf)](./02-Keycloak-Server-Setup/04-core-configuration.md)
 
 #### **Chapter 3: Caching & Replication Modernization**
-*   [3.1 Path A: Embedded Intra-Site Clustering Guide](./03-High-Availability-Core/01-rhbk-ispn-int-deployment-v4.md)
-*   [3.2 Path B: External Infinispan Client Configuration](./03-High-Availability-Core/02-rhbk-ispn-ext-deployment-v4.md)
-*   [3.3 Path B: Standalone Infinispan Cluster XML Setup](./03-High-Availability-Core/03-ispn-ext-deployment-v4.md)
-*   [3.4 Firewalld Port Mapping & Security Hardening](./03-High-Availability-Core/04-firewall-v4.md)
+*   [3.1 Path A: Embedded Intra-Site Clustering Guide](./03-High-Availability-Core/01-rhbk-ispn-int-deployment.md)
+*   [3.2 Path B: External Infinispan Client Configuration](./03-High-Availability-Core/02-rhbk-ispn-ext-deployment.md)
+*   [3.3 Path B: Standalone Infinispan Cluster XML Setup](./03-High-Availability-Core/03-ispn-ext-deployment.md)
+*   [3.4 Firewalld Port Mapping & Security Hardening](./03-High-Availability-Core/04-firewall.md)
 
 #### **Chapter 4: Site-Local Load Balancers**
-*   [4.1 HAProxy Local Configuration & Stickiness](./04-Load-Balancing-and-Failover/01-site-local-HAProxy-configuration-v4.md)
+*   [4.1 HAProxy Local Configuration & Stickiness](./04-Load-Balancing-and-Failover/01-site-local-HAProxy-configuration.md)
 
 #### **Chapter 5: GSLB Simulation**
-*   [5.1 BIND Authoritative DNS Setup](./05-External-Infrastructure/bind-setup-v4.md)
-*   [5.2 health_check.sh nsupdate Failover Engine](./05-External-Infrastructure/health-check-script-v4.md)
-*   [5.3 Global HAProxy Resolver Front Door](./05-External-Infrastructure/global-haproxy-v4.md)
+*   [5.1 BIND Authoritative DNS Setup](./05-External-Infrastructure/01-bind-setup.md)
+*   [5.2 health_check.sh nsupdate Failover Engine](./05-External-Infrastructure/02-health-check-script.md)
+*   [5.3 Global HAProxy Resolver Front Door](./05-External-Infrastructure/03-global-haproxy.md)
 
 ---
 
